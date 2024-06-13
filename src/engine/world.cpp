@@ -2,7 +2,10 @@
 
 #include "entity.h"
 
-World::World() { }
+World::World()
+{
+    clear_color = RAYWHITE;
+}
 
 World::~World()
 {
@@ -49,4 +52,41 @@ std::vector<Collision> World::check_collision(Actor* actor)
     }
 
     return collisions;
+}
+
+void World::init()
+{
+    camera.reset();
+}
+
+void World::update()
+{
+    for (Solid* solid : solids)
+        solid->update(this);
+
+    for (Actor* actor : actors)
+        actor->update(this);
+
+    camera.update(this);
+}
+
+void World::render()
+{
+    BeginDrawing();
+    ClearBackground(clear_color);
+
+    BeginMode2D(camera.get_camera());
+    render_2d_inner();
+    EndMode2D();
+
+    EndDrawing();
+}
+
+void World::render_2d_inner()
+{
+    for (Solid* solid : solids)
+        solid->render();
+
+    for (Actor* actor : actors)
+        actor->render();
 }

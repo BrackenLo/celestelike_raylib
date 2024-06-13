@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "engine/level.h"
+#include "engine/world.h"
 
 static const int SCREEN_WIDTH = 800;
 static const int SCREEN_HEIGHT = 450;
@@ -17,5 +17,5 @@ public:
     int run();
 
 private:
-    std::shared_ptr<Level> level;
+    std::shared_ptr<World> world;
 };

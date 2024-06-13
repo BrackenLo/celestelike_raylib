@@ -111,6 +111,9 @@ void Player::resolve_collisions(World* world)
 
     if (grounded)
         velocity.y = 0.0f;
+
+    if (on_wall)
+        velocity.x = 0.0f;
 }
 
 void Player::render()

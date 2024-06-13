@@ -1,5 +1,6 @@
 #pragma once
 
+#include "camera.h"
 #include "physics.h"
 #include <vector>
 
@@ -15,6 +16,18 @@ public:
     std::vector<class Solid*>* get_solids();
 
     std::vector<Collision> check_collision(class Actor* actor);
+
+public:
+    Color clear_color;
+    GameCamera camera;
+
+protected:
+    virtual void init();
+    virtual void update();
+    virtual void render();
+    virtual void render_2d_inner();
+
+    friend class Game;
 
 private:
     std::vector<class Actor*> actors;

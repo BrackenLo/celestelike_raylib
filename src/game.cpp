@@ -1,12 +1,12 @@
 #include "game.h"
 
-#include "game/simple_level.h"
+#include "game/simple_world.h"
 #include <memory>
 
 Game::Game()
 {
     TraceLog(TraceLogLevel::LOG_INFO, "Constructing Game");
-    level = std::unique_ptr<Level>(new SimpleLevel());
+    world = std::unique_ptr<World>(new SimpleWorld());
 }
 
 int Game::run()
@@ -18,11 +18,11 @@ int Game::run()
     SetWindowState(ConfigFlags::FLAG_WINDOW_RESIZABLE);
     // SetExitKey(0);
 
-    level->init();
+    world->init();
 
     while (!WindowShouldClose()) {
-        level->update();
-        level->render();
+        world->update();
+        world->render();
     }
 
     CloseWindow();
