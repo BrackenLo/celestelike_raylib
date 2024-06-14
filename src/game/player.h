@@ -36,7 +36,7 @@ protected:
     bool on_ceiling = false;
     bool on_wall = false;
 
-    float max_speed = 400.0f;
+    float max_velocity_x = 400.0f;
     float max_fall_speed = 800.0f;
 
     bool jumping = false;

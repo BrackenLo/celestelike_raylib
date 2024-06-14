@@ -82,25 +82,23 @@ void Player::update_velocity()
 
 void Player::update_x_vel(float delta)
 {
-    // No input pressed - deaccelerate player
-    if (input_dir.x == 0.0f) {
-        velocity.x = step(velocity.x, 0., deaccel * delta);
-        return;
-    }
-
-    // TODO - Change to be simpler
-    float input_sign = std::copysign(1.0f, input_dir.x);
-    float vel_sign = std::copysign(1.0f, velocity.x);
-
+    float target_velocity = input_dir.x * max_velocity_x;
     float speed;
 
-    if ((input_sign == 1.0f && vel_sign == -1.0f)
-        || (input_sign == -1.0f && vel_sign == 1.0f)) {
+    // Do deacceleration if no player input
+    if (input_dir.x == 0.0f)
         speed = deaccel;
-    } else
-        speed = accel;
 
-    velocity.x = step(velocity.x, max_speed * input_sign, speed * delta);
+    // Do Acceleration
+    else {
+        float target_sign = std::copysign(1.0f, target_velocity);
+        float current_sign = std::copysign(1.0f, velocity.x);
+
+        // TODO - use accel speed when velocity == 0
+        speed = (target_sign == current_sign) ? accel : deaccel;
+    }
+
+    velocity.x = step(velocity.x, target_velocity, speed * delta);
 }
 
 void Player::update_y_vel(float delta)
@@ -172,7 +170,7 @@ void Player::resolve_collisions(World* world)
         velocity.y = step(velocity.y, 0.0f, fall_gravity * delta);
 
     if (on_wall)
-        velocity.x = 0.0f;
+        velocity.x = step(velocity.x, 0.0f, deaccel * delta * 1.3f);
 }
 
 void Player::render()
