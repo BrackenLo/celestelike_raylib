@@ -12,6 +12,11 @@ Player::Player()
 
     half_width = 25;
     half_height = 32;
+
+    jump_impulse = (2.0f * jump_height) / jump_time_to_peak;
+    jump_gravity = (-2.0f * jump_height) / (jump_time_to_peak * jump_time_to_peak);
+    fall_gravity = (-2.0f * jump_height) / (jump_time_to_descent * jump_time_to_descent);
+    variable_jump_gravity = ((jump_impulse * jump_impulse) / (2.0f * variable_jump_height)) * -1.0f;
 }
 
 Player::Player(Vector2 new_pos)
@@ -22,21 +27,19 @@ Player::Player(Vector2 new_pos)
 
 void Player::update(World* world)
 {
-    float delta = GetFrameTime();
-
+    player_input();
     update_velocity();
-
-    pos = Vector2Add(
-        pos,
-        Vector2Scale(velocity, delta));
 
     resolve_collisions(world);
 }
 
-void Player::update_velocity()
+void Player::player_input()
 {
-    Vector2 input_dir = { 0 };
+    float delta = GetFrameTime();
 
+    input_dir = { 0 };
+
+    // Get movement directions
     if (IsKeyDown(KEY_A))
         input_dir.x -= 1.0f;
     if (IsKeyDown(KEY_D))
@@ -47,20 +50,45 @@ void Player::update_velocity()
     if (IsKeyDown(KEY_S))
         input_dir.y += 1.0f;
 
-    update_x_vel(input_dir);
-    update_y_vel(input_dir);
+    jump_held = IsKeyDown(KEY_SPACE);
+
+    // Tick jump buffer
+    if (jump_pressed) {
+        jump_buffer -= delta;
+        if (jump_buffer <= 0.0f) {
+            jump_pressed = false;
+            jump_buffer = 0.0f;
+        }
+    }
+
+    // Start jump buffer
+    if (IsKeyPressed(KEY_SPACE)) {
+        jump_pressed = true;
+        jump_buffer = jump_buffer_size;
+    }
 }
 
-void Player::update_x_vel(Vector2 input_dir)
+void Player::update_velocity()
 {
     float delta = GetFrameTime();
 
-    // No input pressed
+    update_x_vel(delta);
+    update_y_vel(delta);
+
+    pos = Vector2Add(
+        pos,
+        Vector2Scale(velocity, delta));
+}
+
+void Player::update_x_vel(float delta)
+{
+    // No input pressed - deaccelerate player
     if (input_dir.x == 0.0f) {
         velocity.x = step(velocity.x, 0., deaccel * delta);
         return;
     }
 
+    // TODO - Change to be simpler
     float input_sign = std::copysign(1.0f, input_dir.x);
     float vel_sign = std::copysign(1.0f, velocity.x);
 
@@ -75,52 +103,39 @@ void Player::update_x_vel(Vector2 input_dir)
     velocity.x = step(velocity.x, max_speed * input_sign, speed * delta);
 }
 
-void Player::update_y_vel(Vector2 input_dir)
+void Player::update_y_vel(float delta)
 {
-    float delta = GetFrameTime();
-
-    jump_held = IsKeyDown(KEY_SPACE);
-
-    // Start jump buffer
-    if (IsKeyPressed(KEY_SPACE)) {
-        jump_pressed = true;
-        jump_buffer = jump_buffer_size;
-    }
-
     // Start jumping
     if (jump_pressed && grounded) {
         jump_pressed = false;
         jump_buffer = 0.0f;
 
-        velocity.y = -jump_impulse;
-        gravity = jump_gravity;
         jumping = true;
+        velocity.y = jump_impulse;
     }
 
-    if (jumping && !jump_held) {
+    // If jumping, check end jump conditions
+    if (jumping && (!jump_held || velocity.y > 0.1))
         jumping = false;
-    }
-
-    // If going up, use up gravity
-    if (velocity.y <= 0.1 && !jumping)
-        gravity = up_gravity;
-
-    // If falling, use fall gravity
-    if (velocity.y > 0.1)
-        gravity = fall_gravity;
-
-    // Tick jump buffer
-    if (jump_pressed) {
-        jump_buffer -= delta;
-        if (jump_buffer <= 0.0f) {
-            jump_pressed = false;
-            jump_buffer = 0.0f;
-        }
-    }
 
     // Apply and clamp gravity
-    velocity.y += gravity * delta;
+    velocity.y += get_gravity() * delta;
     velocity.y = std::fmin(velocity.y, max_fall_speed);
+}
+
+float Player::get_gravity()
+{
+    // Variable Jump Gravity
+    if (jumping)
+        return variable_jump_gravity;
+
+    // Jump Gravity
+    else if (velocity.y < 0.0f)
+        return jump_gravity;
+
+    // Falling Gravity
+    else
+        return fall_gravity;
 }
 
 void Player::resolve_collisions(World* world)
@@ -150,14 +165,11 @@ void Player::resolve_collisions(World* world)
         pos.y += collision.delta.y;
     }
 
-    if (grounded) {
+    if (grounded)
         velocity.y = 0.0f;
-        jumping = false;
-    }
 
-    if (on_ceiling && velocity.y < 0.0f) {
+    if (on_ceiling && velocity.y < 0.0f)
         velocity.y = step(velocity.y, 0.0f, fall_gravity * delta);
-    }
 
     if (on_wall)
         velocity.x = 0.0f;

@@ -14,11 +14,19 @@ protected:
     virtual void update_velocity();
 
 private:
-    void update_x_vel(Vector2 input_dir);
-    void update_y_vel(Vector2 input_dir);
+    void player_input();
+
+    void update_x_vel(float delta);
+    void update_y_vel(float delta);
+    float get_gravity();
+
     void resolve_collisions(World* world);
 
 protected:
+    Vector2 input_dir = { 0 };
+    bool jump_held = false;
+    bool jump_pressed = false;
+
     Vector2 velocity = { 0 };
 
     float accel = 2200.0f;
@@ -28,19 +36,21 @@ protected:
     bool on_ceiling = false;
     bool on_wall = false;
 
-    float gravity = 1800.0f;
     float max_speed = 400.0f;
     float max_fall_speed = 800.0f;
 
-    float up_gravity = 1800.0f;
-    float fall_gravity = 2500.0f;
-    float jump_gravity = 500.0f;
-
-    float jump_impulse = 400.0f;
     bool jumping = false;
-
-    bool jump_held = false;
-    bool jump_pressed = false;
     float jump_buffer = 0.0f;
     float jump_buffer_size = 0.1f;
+
+    // https://www.youtube.com/watch?v=KbtcEVCM7bw
+    float jump_height = -60.0f;
+    float jump_time_to_peak = 0.25f;
+    float jump_time_to_descent = 0.2f;
+    float variable_jump_height = -150.0f;
+
+    float jump_impulse;
+    float jump_gravity;
+    float fall_gravity;
+    float variable_jump_gravity;
 };
