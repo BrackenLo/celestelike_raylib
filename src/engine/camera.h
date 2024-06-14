@@ -10,7 +10,7 @@ public:
     virtual void update(class World* world) override;
     virtual void reset();
 
-    Camera2D get_camera();
+    inline Camera2D get_camera() { return camera; }
 
 public:
     float speed;

@@ -39,8 +39,3 @@ void GameCamera::reset()
         GetScreenHeight() / 2.0f
     };
 }
-
-Camera2D GameCamera::get_camera()
-{
-    return camera;
-}

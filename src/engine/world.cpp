@@ -17,33 +17,13 @@ World::~World()
     }
 }
 
-void World::add_solid(Solid* solid)
-{
-    solids.push_back(solid);
-}
-
-void World::add_actor(Actor* actor)
-{
-    actors.push_back(actor);
-}
-
-std::vector<Actor*>* World::get_actors()
-{
-    return &actors;
-}
-
-std::vector<Solid*>* World::get_solids()
-{
-    return &solids;
-}
-
-std::vector<Collision> World::check_collision(Actor* actor)
+std::vector<Collision> World::check_collision(CollisionEntity* to_check)
 {
     std::vector<Collision> collisions;
 
     for (Solid* solid : solids) {
 
-        auto collision = intersect_aabb(solid, actor);
+        std::optional<Collision> collision = intersect_aabb(solid, to_check);
 
         if (!collision.has_value())
             continue;

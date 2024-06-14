@@ -28,7 +28,7 @@ Player::Player(Vector2 new_pos)
 void Player::update(World* world)
 {
     player_input();
-    update_velocity();
+    update_velocity(world);
 
     resolve_collisions(world);
 }
@@ -68,20 +68,13 @@ void Player::player_input()
     }
 }
 
-void Player::update_velocity()
+void Player::update_velocity(World* world)
 {
     float delta = GetFrameTime();
 
-    update_x_vel(delta);
-    update_y_vel(delta);
+    //----------------------------------------------
+    // Update X Velocity
 
-    pos = Vector2Add(
-        pos,
-        Vector2Scale(velocity, delta));
-}
-
-void Player::update_x_vel(float delta)
-{
     float target_velocity = input_dir.x * max_velocity_x;
     float speed;
 
@@ -99,10 +92,10 @@ void Player::update_x_vel(float delta)
     }
 
     velocity.x = step(velocity.x, target_velocity, speed * delta);
-}
 
-void Player::update_y_vel(float delta)
-{
+    //----------------------------------------------
+    // Update Y Velocity
+
     // Start jumping
     if (jump_pressed && grounded) {
         jump_pressed = false;
@@ -119,6 +112,49 @@ void Player::update_y_vel(float delta)
     // Apply and clamp gravity
     velocity.y += get_gravity() * delta;
     velocity.y = std::fmin(velocity.y, max_fall_speed);
+
+    //----------------------------------------------
+    // Wall jump
+
+    if (!grounded && jump_pressed) {
+        CollisionEntity to_check = CollisionEntity(pos, half_width + 4, half_height + 4);
+        std::vector<Collision> collisions = world->check_collision(&to_check);
+
+        // TODO - go through collisions, check if left or right and add velocity accordingly
+
+        bool left_collision = false;
+        bool right_collision = false;
+
+        for (Collision collision : collisions) {
+            if (collision.normal.x == 1.0f)
+                left_collision = true;
+            if (collision.normal.x == -1.0f)
+                right_collision = true;
+        }
+
+        if (left_collision || right_collision) {
+            jumping = false;
+            jump_buffer = 0.0f;
+
+            float x_mul;
+
+            if (left_collision && right_collision)
+                x_mul = 0.;
+            else
+                x_mul = left_collision ? 1.0f : -1.0f;
+
+            velocity.x
+                = wall_jump_impulse.x * x_mul;
+            velocity.y = wall_jump_impulse.y;
+        }
+    }
+
+    //----------------------------------------------
+    // Update Velocity
+
+    pos = Vector2Add(
+        pos,
+        Vector2Scale(velocity, delta));
 }
 
 float Player::get_gravity()

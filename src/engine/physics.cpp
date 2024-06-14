@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 
-std::optional<Collision> intersect_aabb(Solid* solid, Actor* actor)
+std::optional<Collision> intersect_aabb(CollisionEntity* solid, CollisionEntity* actor)
 {
     float dx = actor->pos.x - solid->pos.x;
     float px = (actor->half_width + solid->half_width) - std::abs(dx);

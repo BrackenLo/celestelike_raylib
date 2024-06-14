@@ -11,4 +11,4 @@ struct Collision {
     float time;
 };
 
-std::optional<Collision> intersect_aabb(class Solid* solid, class Actor* actor);
+std::optional<Collision> intersect_aabb(class CollisionEntity* solid, class CollisionEntity* actor);

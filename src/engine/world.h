@@ -9,13 +9,13 @@ public:
     World();
     ~World();
 
-    void add_actor(class Actor* actor);
-    void add_solid(class Solid* solid);
+    inline void add_actor(class Actor* actor) { actors.push_back(actor); }
+    inline void add_solid(class Solid* solid) { solids.push_back(solid); }
 
-    std::vector<class Actor*>* get_actors();
-    std::vector<class Solid*>* get_solids();
+    inline std::vector<class Actor*>* get_actors() { return &actors; }
+    inline std::vector<class Solid*>* get_solids() { return &solids; };
 
-    std::vector<Collision> check_collision(class Actor* actor);
+    std::vector<Collision> check_collision(class CollisionEntity* to_check);
 
 public:
     Color clear_color;

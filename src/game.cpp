@@ -18,6 +18,8 @@ int Game::run()
     SetWindowState(ConfigFlags::FLAG_WINDOW_RESIZABLE);
     // SetExitKey(0);
 
+    SetTraceLogLevel(TraceLogLevel::LOG_ALL);
+
     world->init();
 
     while (!WindowShouldClose()) {
