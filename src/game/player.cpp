@@ -31,6 +31,9 @@ void Player::update(World* world)
     update_velocity(world);
 
     resolve_collisions(world);
+
+    if (!grounded)
+        time_since_grounded += GetFrameTime();
 }
 
 void Player::player_input()
@@ -94,33 +97,13 @@ void Player::update_velocity(World* world)
     velocity.x = step(velocity.x, target_velocity, speed * delta);
 
     //----------------------------------------------
-    // Update Y Velocity
-
-    // Start jumping
-    if (jump_pressed && grounded) {
-        jump_pressed = false;
-        jump_buffer = 0.0f;
-
-        jumping = true;
-        velocity.y = jump_impulse;
-    }
-
-    // If jumping, check end jump conditions
-    if (jumping && (!jump_held || velocity.y > 0.1))
-        jumping = false;
-
-    // Apply and clamp gravity
-    velocity.y += get_gravity() * delta;
-    velocity.y = std::fmin(velocity.y, max_fall_speed);
-
-    //----------------------------------------------
     // Wall jump
+
+    bool is_wall_jump = false;
 
     if (!grounded && jump_pressed) {
         CollisionEntity to_check = CollisionEntity(pos, half_width + 4, half_height + 4);
         std::vector<Collision> collisions = world->check_collision(&to_check);
-
-        // TODO - go through collisions, check if left or right and add velocity accordingly
 
         bool left_collision = false;
         bool right_collision = false;
@@ -133,6 +116,7 @@ void Player::update_velocity(World* world)
         }
 
         if (left_collision || right_collision) {
+            is_wall_jump = true;
             jumping = false;
             jump_buffer = 0.0f;
 
@@ -148,6 +132,34 @@ void Player::update_velocity(World* world)
             velocity.y = wall_jump_impulse.y;
         }
     }
+
+    //----------------------------------------------
+    // Update Y Velocity
+
+    // Start jumping
+    if (jump_pressed && !is_wall_jump) {
+
+        bool first_jump = remaining_jumps == total_jumps;
+        bool has_ground = grounded || time_since_grounded < coyote_time;
+        bool can_jump = remaining_jumps > 0 && ((first_jump && has_ground) || !first_jump);
+
+        if (can_jump) {
+            jump_pressed = false;
+            jump_buffer = 0.0f;
+            remaining_jumps -= 1;
+
+            jumping = true;
+            velocity.y = jump_impulse;
+        }
+    }
+
+    // If jumping, check end jump conditions
+    if (jumping && (!jump_held || velocity.y > 0.1))
+        jumping = false;
+
+    // Apply and clamp gravity
+    velocity.y += get_gravity() * delta;
+    velocity.y = std::fmin(velocity.y, max_fall_speed);
 
     //----------------------------------------------
     // Update Velocity
@@ -184,15 +196,21 @@ void Player::resolve_collisions(World* world)
 
     for (auto collision : world->check_collision(this)) {
 
+        // Has collision Below
         if (collision.delta.y < 0.0f)
             grounded = true;
+
+        // Has Collision Above
         if (collision.delta.y > 0.0f)
             on_ceiling = true;
 
+        // Has collision left or right
         if (collision.delta.x != 0.0f)
             on_wall = true;
 
+        // Has both axies of collision
         if (collision.delta.x != 0.0f && collision.delta.y != 0.0f) {
+            // Prioritise using y axis
             pos.y += collision.delta.y;
             return;
         }
@@ -201,8 +219,13 @@ void Player::resolve_collisions(World* world)
         pos.y += collision.delta.y;
     }
 
-    if (grounded)
-        velocity.y = 0.0f;
+    if (grounded) {
+        world->add_message("GROUNDED");
+
+        velocity.y = fmin(velocity.y, 0.0f);
+        remaining_jumps = total_jumps;
+        time_since_grounded = 0.0f;
+    }
 
     if (on_ceiling && velocity.y < 0.0f)
         velocity.y = step(velocity.y, 0.0f, fall_gravity * delta);
@@ -222,6 +245,10 @@ void Player::render(World* world)
         "Player Vel = (%s, %s)",
         int_to_str(velocity.x, 4).c_str(),
         int_to_str(velocity.y, 4).c_str()));
+
+    world->add_message(TextFormat("Grounded %d, On Ceiling %d, On Wall %d", grounded, on_ceiling, on_wall));
+    world->add_message(TextFormat("Time since grounded = %f.2", time_since_grounded));
+    world->add_message(TextFormat("Total jumps %d, remaining jumps %d", total_jumps, remaining_jumps));
 
     DrawRectangle(
         pos.x - half_width,

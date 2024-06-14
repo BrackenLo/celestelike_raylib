@@ -1,6 +1,5 @@
 #include "tools.h"
 
-#include "raylib.h"
 #include <cmath>
 
 float step(float val, float target, float step)

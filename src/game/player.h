@@ -30,8 +30,10 @@ protected:
     bool on_ceiling = false;
     bool on_wall = false;
 
-    bool jumping = false;
+    float time_since_grounded = 0.0f;
     float jump_buffer = 0.0f;
+    bool jumping = false;
+    int remaining_jumps = 1;
 
     float jump_impulse;
     float jump_gravity;
@@ -47,11 +49,13 @@ protected:
     float max_fall_speed = 800.0f;
 
     float jump_buffer_size = 0.1f;
+    float coyote_time = 0.09f;
 
     float jump_height = -60.0f;
     float jump_time_to_peak = 0.25f;
     float jump_time_to_descent = 0.2f;
     float variable_jump_height = -150.0f;
+    int total_jumps = 2;
 
     float wall_slide_gravity = 300.0f; // TODO
     Vector2 wall_jump_impulse = { 600.0f, -500.0f };
