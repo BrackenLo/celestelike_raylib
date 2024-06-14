@@ -79,23 +79,64 @@ void Player::update_y_vel(Vector2 input_dir)
 {
     float delta = GetFrameTime();
 
-    if (IsKeyPressed(KEY_SPACE) && grounded) {
-        velocity.y = -jump_impulse;
+    jump_held = IsKeyDown(KEY_SPACE);
+
+    // Start jump buffer
+    if (IsKeyPressed(KEY_SPACE)) {
+        jump_pressed = true;
+        jump_buffer = jump_buffer_size;
     }
 
+    // Start jumping
+    if (jump_pressed && grounded) {
+        jump_pressed = false;
+        jump_buffer = 0.0f;
+
+        velocity.y = -jump_impulse;
+        gravity = jump_gravity;
+        jumping = true;
+    }
+
+    if (jumping && !jump_held) {
+        jumping = false;
+    }
+
+    // If going up, use up gravity
+    if (velocity.y <= 0.1 && !jumping)
+        gravity = up_gravity;
+
+    // If falling, use fall gravity
+    if (velocity.y > 0.1)
+        gravity = fall_gravity;
+
+    // Tick jump buffer
+    if (jump_pressed) {
+        jump_buffer -= delta;
+        if (jump_buffer <= 0.0f) {
+            jump_pressed = false;
+            jump_buffer = 0.0f;
+        }
+    }
+
+    // Apply and clamp gravity
     velocity.y += gravity * delta;
     velocity.y = std::fmin(velocity.y, max_fall_speed);
 }
 
 void Player::resolve_collisions(World* world)
 {
+    float delta = GetFrameTime();
+
     grounded = false;
+    on_ceiling = false;
     on_wall = false;
 
     for (auto collision : world->check_collision(this)) {
 
         if (collision.delta.y < 0.0f)
             grounded = true;
+        if (collision.delta.y > 0.0f)
+            on_ceiling = true;
 
         if (collision.delta.x != 0.0f)
             on_wall = true;
@@ -109,8 +150,14 @@ void Player::resolve_collisions(World* world)
         pos.y += collision.delta.y;
     }
 
-    if (grounded)
+    if (grounded) {
         velocity.y = 0.0f;
+        jumping = false;
+    }
+
+    if (on_ceiling && velocity.y < 0.0f) {
+        velocity.y = step(velocity.y, 0.0f, fall_gravity * delta);
+    }
 
     if (on_wall)
         velocity.x = 0.0f;

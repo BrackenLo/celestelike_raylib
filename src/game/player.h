@@ -24,12 +24,23 @@ protected:
     float accel = 2200.0f;
     float deaccel = 2600.0f;
 
-    float gravity = 1800.0f;
-    float jump_impulse = 800.0f;
+    bool grounded = false;
+    bool on_ceiling = false;
+    bool on_wall = false;
 
+    float gravity = 1800.0f;
     float max_speed = 400.0f;
     float max_fall_speed = 800.0f;
 
-    bool grounded = false;
-    bool on_wall = false;
+    float up_gravity = 1800.0f;
+    float fall_gravity = 2500.0f;
+    float jump_gravity = 500.0f;
+
+    float jump_impulse = 400.0f;
+    bool jumping = false;
+
+    bool jump_held = false;
+    bool jump_pressed = false;
+    float jump_buffer = 0.0f;
+    float jump_buffer_size = 0.1f;
 };
