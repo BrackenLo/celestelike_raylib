@@ -59,14 +59,16 @@ void World::render()
     render_2d_inner();
     EndMode2D();
 
+    logger.render();
+
     EndDrawing();
 }
 
 void World::render_2d_inner()
 {
     for (Solid* solid : solids)
-        solid->render();
+        solid->render(this);
 
     for (Actor* actor : actors)
-        actor->render();
+        actor->render(this);
 }

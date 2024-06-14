@@ -2,6 +2,7 @@
 
 #include "camera.h"
 #include "physics.h"
+#include "tools.h"
 #include <vector>
 
 class World {
@@ -16,6 +17,8 @@ public:
     inline std::vector<class Solid*>* get_solids() { return &solids; };
 
     std::vector<Collision> check_collision(class CollisionEntity* to_check);
+
+    inline void add_message(const char* text) { logger.add_message(text); }
 
 public:
     Color clear_color;
@@ -32,4 +35,6 @@ protected:
 private:
     std::vector<class Actor*> actors;
     std::vector<class Solid*> solids;
+
+    Logger logger;
 };

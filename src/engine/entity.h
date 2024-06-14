@@ -11,7 +11,7 @@ public:
 
     ~Entity() { }
     virtual void update(class World* world) {};
-    virtual void render() {};
+    virtual void render(class World* world) {};
 
     Vector2 pos;
 };
@@ -24,7 +24,7 @@ public:
     CollisionEntity();
     CollisionEntity(Vector2 pos, int h_width, int h_height);
 
-    virtual void render();
+    virtual void render(class World* world) override;
 
     int half_width;
     int half_height;

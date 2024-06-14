@@ -159,17 +159,19 @@ void Player::update_velocity(World* world)
 
 float Player::get_gravity()
 {
+    if (on_wall && velocity.y > 0.0f)
+        return wall_slide_gravity;
+
     // Variable Jump Gravity
     if (jumping)
         return variable_jump_gravity;
 
     // Jump Gravity
-    else if (velocity.y < 0.0f)
+    if (velocity.y < 0.0f)
         return jump_gravity;
 
     // Falling Gravity
-    else
-        return fall_gravity;
+    return fall_gravity;
 }
 
 void Player::resolve_collisions(World* world)
@@ -209,10 +211,17 @@ void Player::resolve_collisions(World* world)
         velocity.x = step(velocity.x, 0.0f, deaccel * delta * 1.3f);
 }
 
-void Player::render()
+void Player::render(World* world)
 {
-    DrawText(TextFormat("Player Pos = (%d, %d)", (int)pos.x, (int)pos.y), -200, -200, 20, BLACK);
-    DrawText(TextFormat("Player vel = (%d, %d)", (int)velocity.x, (int)velocity.y), -200, -180, 20, BLACK);
+    world->add_message(TextFormat(
+        "Player Pos = (%s, %s)",
+        int_to_str(pos.x, 4).c_str(),
+        int_to_str(pos.y, 4).c_str()));
+
+    world->add_message(TextFormat(
+        "Player Vel = (%s, %s)",
+        int_to_str(velocity.x, 4).c_str(),
+        int_to_str(velocity.y, 4).c_str()));
 
     DrawRectangle(
         pos.x - half_width,

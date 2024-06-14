@@ -8,7 +8,7 @@ public:
     Player(Vector2 pos);
 
     virtual void update(class World* world) override;
-    virtual void render() override;
+    virtual void render(class World* world) override;
 
 private:
     void player_input();

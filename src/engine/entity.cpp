@@ -28,7 +28,7 @@ CollisionEntity::CollisionEntity(Vector2 new_pos, int h_width, int h_height)
     half_height = h_height;
 }
 
-void CollisionEntity::render()
+void CollisionEntity::render(World* world)
 {
     DrawRectangle(
         pos.x - half_width,
