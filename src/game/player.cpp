@@ -117,7 +117,6 @@ void Player::update_velocity(World* world)
 
         if (left_collision || right_collision) {
             is_wall_jump = true;
-            jumping = false;
             jump_buffer = 0.0f;
 
             float x_mul;
@@ -127,9 +126,9 @@ void Player::update_velocity(World* world)
             else
                 x_mul = left_collision ? 1.0f : -1.0f;
 
-            velocity.x
-                = wall_jump_impulse.x * x_mul;
-            velocity.y = wall_jump_impulse.y;
+            velocity.x = wall_jump_impulse_x * x_mul;
+            velocity.y = jump_impulse;
+            jumping = true;
         }
     }
 
@@ -220,8 +219,6 @@ void Player::resolve_collisions(World* world)
     }
 
     if (grounded) {
-        world->add_message("GROUNDED");
-
         velocity.y = fmin(velocity.y, 0.0f);
         remaining_jumps = total_jumps;
         time_since_grounded = 0.0f;
@@ -236,6 +233,10 @@ void Player::resolve_collisions(World* world)
 
 void Player::render(World* world)
 {
+#ifdef DEBUG
+    if (grounded)
+        world->add_message("GROUNDED");
+
     world->add_message(TextFormat(
         "Player Pos = (%s, %s)",
         int_to_str(pos.x, 4).c_str(),
@@ -249,6 +250,7 @@ void Player::render(World* world)
     world->add_message(TextFormat("Grounded %d, On Ceiling %d, On Wall %d", grounded, on_ceiling, on_wall));
     world->add_message(TextFormat("Time since grounded = %f.2", time_since_grounded));
     world->add_message(TextFormat("Total jumps %d, remaining jumps %d", total_jumps, remaining_jumps));
+#endif
 
     DrawRectangle(
         pos.x - half_width,

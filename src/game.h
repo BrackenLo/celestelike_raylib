@@ -1,10 +1,7 @@
 #pragma once
 
-#include "raylib.h"
-#include <memory>
-#include <vector>
-
 #include "engine/world.h"
+#include <memory>
 
 static const int SCREEN_WIDTH = 800;
 static const int SCREEN_HEIGHT = 450;

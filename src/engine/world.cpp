@@ -59,7 +59,9 @@ void World::render()
     render_2d_inner();
     EndMode2D();
 
-    logger.render();
+#ifdef DEBUG
+    debug.render();
+#endif
 
     EndDrawing();
 }

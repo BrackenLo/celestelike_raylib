@@ -1,6 +1,10 @@
 # Xmake cache
 .xmake/
 build/
+makefile
+
+# Xmake clangd stuff
+compile_commands.json
 
 # MacOS Cache?
 .DS_Store

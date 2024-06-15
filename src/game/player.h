@@ -55,8 +55,9 @@ protected:
     float jump_time_to_peak = 0.25f;
     float jump_time_to_descent = 0.2f;
     float variable_jump_height = -150.0f;
-    int total_jumps = 2;
+    int total_jumps = 1;
 
     float wall_slide_gravity = 300.0f; // TODO
-    Vector2 wall_jump_impulse = { 600.0f, -500.0f };
+    // Vector2 wall_jump_impulse = { 400.0f, -500.0f };
+    float wall_jump_impulse_x = 400.0f;
 };
