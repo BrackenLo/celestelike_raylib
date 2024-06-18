@@ -13,16 +13,21 @@ Player::Player()
     half_width = 25;
     half_height = 32;
 
-    jump_impulse = (2.0f * jump_height) / jump_time_to_peak;
-    jump_gravity = (-2.0f * jump_height) / (jump_time_to_peak * jump_time_to_peak);
-    fall_gravity = (-2.0f * jump_height) / (jump_time_to_descent * jump_time_to_descent);
-    variable_jump_gravity = ((jump_impulse * jump_impulse) / (2.0f * variable_jump_height)) * -1.0f;
+    update_jump_variables();
 }
 
 Player::Player(Vector2 new_pos)
     : Player()
 {
     pos = new_pos;
+}
+
+void Player::update_jump_variables()
+{
+    jump_impulse = (2.0f * jump_height) / jump_time_to_peak;
+    jump_gravity = (-2.0f * jump_height) / (jump_time_to_peak * jump_time_to_peak);
+    fall_gravity = (-2.0f * jump_height) / (jump_time_to_descent * jump_time_to_descent);
+    variable_jump_gravity = ((jump_impulse * jump_impulse) / (2.0f * variable_jump_height)) * -1.0f;
 }
 
 void Player::update(World* world)
@@ -233,7 +238,6 @@ void Player::resolve_collisions(World* world)
 
 void Player::render(World* world)
 {
-#ifdef DEBUG
     if (grounded)
         world->add_message("GROUNDED");
 
@@ -250,7 +254,6 @@ void Player::render(World* world)
     world->add_message(TextFormat("Grounded %d, On Ceiling %d, On Wall %d", grounded, on_ceiling, on_wall));
     world->add_message(TextFormat("Time since grounded = %f.2", time_since_grounded));
     world->add_message(TextFormat("Total jumps %d, remaining jumps %d", total_jumps, remaining_jumps));
-#endif
 
     DrawRectangle(
         pos.x - half_width,

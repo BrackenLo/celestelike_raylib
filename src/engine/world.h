@@ -13,6 +13,9 @@ public:
     inline void add_actor(class Actor* actor) { actors.push_back(actor); }
     inline void add_solid(class Solid* solid) { solids.push_back(solid); }
 
+    bool destroy_actor(class Actor* actor);
+    bool destroy_solid(class Solid* solid);
+
     inline std::vector<class Actor*>* get_actors() { return &actors; }
     inline std::vector<class Solid*>* get_solids() { return &solids; };
 
@@ -34,11 +37,9 @@ private:
     std::vector<class Actor*> actors;
     std::vector<class Solid*> solids;
 
-#ifdef DEBUG
 public:
     inline void add_message(const char* text) { debug.add_message(text); }
 
 private:
     Debugger debug;
-#endif
 };

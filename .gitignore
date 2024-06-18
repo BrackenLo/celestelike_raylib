@@ -5,6 +5,7 @@ makefile
 
 # Xmake clangd stuff
 compile_commands.json
+.cache/
 
 # MacOS Cache?
 .DS_Store

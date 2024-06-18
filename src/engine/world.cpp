@@ -1,6 +1,7 @@
 #include "world.h"
 
 #include "entity.h"
+#include <algorithm>
 
 World::World()
 {
@@ -15,6 +16,28 @@ World::~World()
     for (auto entity : solids) {
         delete entity;
     }
+}
+
+bool World::destroy_actor(Actor* actor)
+{
+    auto it = std::find(actors.begin(), actors.end(), actor);
+    if (it != actors.end()) {
+        actors.erase(it);
+        return true;
+    }
+
+    return false;
+}
+
+bool World::destroy_solid(Solid* solid)
+{
+    auto it = std::find(solids.begin(), solids.end(), solid);
+    if (it != solids.end()) {
+        solids.erase(it);
+        return true;
+    }
+
+    return false;
 }
 
 std::vector<Collision> World::check_collision(CollisionEntity* to_check)
@@ -48,6 +71,8 @@ void World::update()
         actor->update(this);
 
     camera.update(this);
+
+    debug.update(this);
 }
 
 void World::render()
@@ -57,11 +82,10 @@ void World::render()
 
     BeginMode2D(camera.get_camera());
     render_2d_inner();
+    debug.render_2d(this);
     EndMode2D();
 
-#ifdef DEBUG
-    debug.render();
-#endif
+    debug.render(this);
 
     EndDrawing();
 }

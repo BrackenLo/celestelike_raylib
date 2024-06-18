@@ -11,6 +11,8 @@ public:
     virtual void render(class World* world) override;
 
 private:
+    void update_jump_variables();
+
     void player_input();
 
     void update_velocity(World* world);
@@ -59,5 +61,5 @@ protected:
 
     float wall_slide_gravity = 300.0f; // TODO
     // Vector2 wall_jump_impulse = { 400.0f, -500.0f };
-    float wall_jump_impulse_x = 400.0f;
+    float wall_jump_impulse_x = 500.0f;
 };
