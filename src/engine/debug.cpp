@@ -28,6 +28,12 @@ void Debugger::update(World* world)
     if (IsKeyPressed(KEY_F2))
         is_level_editor_enabled = !is_level_editor_enabled;
 
+    if (IsKeyPressed(KEY_F4)) {
+        is_slow_mode = !is_slow_mode;
+        world->get_physics_data()->timestep = //
+            is_slow_mode ? 1.0f / 30.0f : 1.0f / 60.0f;
+    }
+
     if (IsKeyDown(KEY_I))
         world->camera.zoom_target = fmin(world->camera.zoom_target + 0.2, 20.0);
     if (IsKeyDown(KEY_O))
@@ -45,7 +51,20 @@ void Debugger::render(World* world)
 {
     if (is_log_enabled) {
 
-        messages_0.insert(messages_0.begin(), std::to_string(GetFPS()));
+        auto data = world->get_physics_data();
+        const char* elapsed = TextFormat("elapsed: %f", data->elapsed);
+        const char* fps = TextFormat("FPS: %d", GetFPS());
+        const char* timestep = TextFormat("Timestep: %f", data->timestep);
+        const char* accumulator = TextFormat("Accumulator: %f", data->accumulator);
+
+        std::vector<std::string> temp {
+            std::string(elapsed),
+            std::string(fps),
+            std::string(timestep),
+            std::string(accumulator)
+        };
+
+        messages_0.insert(messages_0.begin(), temp.begin(), temp.end());
 
         render_log(&messages_0, 0);
         render_log(&messages_1, 1);

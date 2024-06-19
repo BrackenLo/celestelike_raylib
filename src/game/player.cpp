@@ -37,12 +37,16 @@ void Player::update_jump_variables()
 void Player::update(World* world)
 {
     player_input();
-    update_velocity(world);
+}
 
-    resolve_collisions(world);
+void Player::fixed_update(World* world, float dt)
+{
+    update_velocity(world, dt);
+
+    resolve_collisions(world, dt);
 
     if (!grounded)
-        time_since_grounded += GetFrameTime();
+        time_since_grounded += dt;
 }
 
 void Player::player_input()
@@ -80,10 +84,8 @@ void Player::player_input()
     }
 }
 
-void Player::update_velocity(World* world)
+void Player::update_velocity(World* world, float dt)
 {
-    float delta = GetFrameTime();
-
     //----------------------------------------------
     // Update X Velocity
 
@@ -103,7 +105,7 @@ void Player::update_velocity(World* world)
         speed = (target_sign == current_sign) ? accel : deaccel;
     }
 
-    velocity.x = step(velocity.x, target_velocity, speed * delta);
+    velocity.x = step(velocity.x, target_velocity, speed * dt);
 
     //----------------------------------------------
     // Wall jump
@@ -166,7 +168,7 @@ void Player::update_velocity(World* world)
         jumping = false;
 
     // Apply and clamp gravity
-    velocity.y += get_gravity() * delta;
+    velocity.y += get_gravity() * dt;
     velocity.y = std::fmin(velocity.y, max_fall_speed);
 }
 
@@ -187,10 +189,8 @@ float Player::get_gravity()
     return fall_gravity;
 }
 
-void Player::resolve_collisions(World* world)
+void Player::resolve_collisions(World* world, float dt)
 {
-    float delta = GetFrameTime();
-
     grounded = false;
     on_ceiling = false;
     on_wall = false;
@@ -200,182 +200,43 @@ void Player::resolve_collisions(World* world)
     //
     //----------------------------------------------
 
-    Vector2 pos_to_move = Vector2Scale(velocity, delta);
-
-    if (pos_to_move.x == 0.0f) {
-        world->add_message("NOT HORIZONTAL");
-    }
-    if (pos_to_move.y == 0.0f) {
-        world->add_message("NOT VERTICAL");
-    }
+    Vector2 pos_to_move = Vector2Scale(velocity, dt);
+    pos_to_move.x = round(pos_to_move.x);
+    pos_to_move.y = round(pos_to_move.y);
 
     // int steps = Vector2Length(pos_to_move) / 10; // maybe???
-    // int steps = 5;
+    int sub_steps = 4;
 
-    //
-    //----------------------------------------------
-    // Check x axis
-    // pos.x += pos_to_move.x;
+    Vector2 pos_to_move_step = Vector2Scale(pos_to_move, 1.0f / sub_steps);
 
-    // int x_nudge_left = 0;
-    // int x_nudge_right = 0;
-
-    // // Check all collisions on x axis
-    // for (Collision collision : world->check_collision(this)) {
-
-    //     world->add_message(
-    //         TextFormat(
-    //             "x collision: delta = (%d, %d), normal = (%d, %d)",
-    //             (int)collision.delta.x, (int)collision.delta.y,
-    //             (int)collision.normal.x, (int)collision.normal.y),
-    //         1);
-
-    //     // Has collision left or right
-    //     if (collision.normal.x != 0.0f)
-    //         on_wall = true;
-
-    //     // Skip resolving movement if not the thing
-    //     else
-    //         continue;
-
-    //     if (collision.delta.x > 0.) {
-    //         world->add_message("Nudge right", 2);
-    //         x_nudge_right = std::fmax(x_nudge_right, collision.delta.x);
-    //     }
-
-    //     else {
-    //         world->add_message("Nudge left", 2);
-    //         x_nudge_left = std::fmin(x_nudge_left, collision.delta.x);
-    //     }
-
-    //     // pos.x += collision.delta.x;
-    // }
-
-    // if (x_nudge_left && x_nudge_right) {
-    //     // TODO - squish
-    // }
-
-    // world->add_message(
-    //     TextFormat(
-    //         "x nudge left = %s, nudge right = %s",
-    //         int_to_str(x_nudge_left, 3).c_str(),
-    //         int_to_str(x_nudge_right, 3).c_str()),
-    //     2);
-
-    // pos.x += x_nudge_left + x_nudge_right;
+    world->log(TextFormat("step = (%f, %f)", pos_to_move.x, pos_to_move.y), 1);
+    world->log(TextFormat("sub-step = (%f, %f)", pos_to_move_step.x, pos_to_move_step.y), 1);
 
     //----------------------------------------------
 
-    //
+    Vector2 valid_pos = old_pos;
 
-    pos.x += pos_to_move.x;
+    for (int step = 0; step < sub_steps; step++) {
+        pos.x += pos_to_move_step.x;
 
-    for (CollisionEntity* value : world->check_overlap(this)) {
-        world->add_message("X Collision", 1);
+        for (CollisionEntity* value : world->check_overlap(this)) {
+            world->log("X Collision", 1);
 
-        pos.x = old_pos.x;
+            pos.x = valid_pos.x;
+            on_wall = true; // temp
+        }
+
+        pos.y += pos_to_move_step.y;
+
+        for (CollisionEntity* value : world->check_overlap(this)) {
+            world->log("Y Collision", 1);
+
+            pos.y = valid_pos.y;
+            grounded = true; // temp
+        }
+
+        valid_pos = pos;
     }
-
-    //
-
-    pos.y += pos_to_move.y;
-
-    for (CollisionEntity* value : world->check_overlap(this)) {
-        world->add_message("Y Collision", 1);
-
-        pos.y = old_pos.y;
-    }
-
-    //----------------------------------------------
-    // Check y axis
-
-    // pos.y += pos_to_move.y;
-
-    // int y_nudge_up = 0;
-    // int y_nudge_down = 0;
-
-    // for (Collision collision : world->check_collision(this)) {
-
-    //     world->add_message(
-    //         TextFormat(
-    //             "y collision: delta = (%d, %d), normal = (%d, %d)",
-    //             (int)collision.delta.x, (int)collision.delta.y,
-    //             (int)collision.normal.x, (int)collision.normal.y),
-    //         1);
-
-    //     if (collision.normal.y == 0.0) {
-    //         continue;
-    //     }
-
-    //     // Has collision Below
-    //     if (collision.normal.y < 0.0f)
-    //         grounded = true;
-
-    //     // Has Collision Above
-    //     if (collision.normal.y > 0.0f)
-    //         on_ceiling = true;
-
-    //     // Nudge up
-    //     if (collision.delta.y > 0.0) {
-    //         world->add_message("Nudged up", 2);
-    //         y_nudge_up = std::fmax(y_nudge_up, collision.delta.y);
-    //         // y_nudge_up += collision.delta.y;
-    //     }
-
-    //     // Nudge down
-    //     else {
-    //         world->add_message("Nudged down", 2);
-    //         y_nudge_down = std::fmin(y_nudge_down, collision.delta.y);
-    //         // y_nudge_down += collision.delta.y;
-    //     }
-    // }
-
-    // if (y_nudge_down && y_nudge_up) {
-    //     // TODO - squish
-    // }
-
-    // world->add_message(
-    //     TextFormat(
-    //         "y nudge up = %s, nudge down = %s",
-    //         int_to_str(y_nudge_up, 3).c_str(),
-    //         int_to_str(y_nudge_down, 3).c_str()),
-    //     2);
-
-    // pos.y += y_nudge_up + y_nudge_down;
-
-    //----------------------------------------------
-
-    // for (auto collision : world->check_collision(this)) {
-
-    //     world->add_message(
-    //         TextFormat(
-    //             "collision: delta = (%d, %d), normal = (%d, %d)",
-    //             (int)collision.delta.x, (int)collision.delta.y,
-    //             (int)collision.normal.x, (int)collision.normal.y),
-    //         1);
-
-    //     // Has collision Below
-    //     if (collision.normal.y < 0.0f)
-    //         grounded = true;
-
-    //     // Has Collision Above
-    //     if (collision.normal.y > 0.0f)
-    //         on_ceiling = true;
-
-    //     // Has collision left or right
-    //     if (collision.normal.x != 0.0f)
-    //         on_wall = true;
-
-    //     // Has both axies of collision
-    //     if (collision.normal.x != 0.0f && collision.normal.y != 0.0f) {
-    //         // Prioritise using y axis
-    //         pos.y += collision.delta.y;
-    //         return;
-    //     }
-
-    //     pos.x += collision.delta.x;
-    //     pos.y += collision.delta.y;
-    // }
 
     if (grounded) {
         velocity.y = fmin(velocity.y, 0.0f);
@@ -384,35 +245,34 @@ void Player::resolve_collisions(World* world)
     }
 
     if (on_ceiling && velocity.y < 0.0f)
-        velocity.y = step(velocity.y, 0.0f, fall_gravity * delta);
+        velocity.y = step(velocity.y, 0.0f, fall_gravity * dt);
 
     if (on_wall)
-        velocity.x = step(velocity.x, 0.0f, deaccel * delta * 1.3f);
+        velocity.x = step(velocity.x, 0.0f, deaccel * dt * 1.3f);
 }
 
 //====================================================================
 
 void Player::render(World* world)
 {
-
-    world->add_message(TextFormat(
+    world->log(TextFormat(
         "Player Pos = (%s, %s)",
         int_to_str(pos.x, 4).c_str(),
         int_to_str(pos.y, 4).c_str()));
 
-    world->add_message(TextFormat(
+    world->log(TextFormat(
         "Player Vel = (%s, %s)",
         int_to_str(velocity.x, 4).c_str(),
         int_to_str(velocity.y, 4).c_str()));
 
-    world->add_message(TextFormat("Grounded %d, On Ceiling %d, On Wall %d", grounded, on_ceiling, on_wall));
-    world->add_message(TextFormat("Time since grounded = %.2f", time_since_grounded));
-    world->add_message(TextFormat("Total jumps %d, remaining jumps %d", total_jumps, remaining_jumps));
+    world->log(TextFormat("Grounded %d, On Ceiling %d, On Wall %d", grounded, on_ceiling, on_wall));
+    world->log(TextFormat("Time since grounded = %.2f", time_since_grounded));
+    world->log(TextFormat("Total jumps %d, remaining jumps %d", total_jumps, remaining_jumps));
 
     if (grounded)
-        world->add_message("GROUNDED");
+        world->log("GROUNDED");
     if (on_wall)
-        world->add_message("ON WALL");
+        world->log("ON WALL");
 
     DrawRectangle(
         pos.x - half_width,

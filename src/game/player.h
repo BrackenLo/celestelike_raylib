@@ -8,6 +8,7 @@ public:
     Player(Vector2 pos);
 
     virtual void update(class World* world) override;
+    virtual void fixed_update(class World* world, float dt) override;
     virtual void render(class World* world) override;
 
 private:
@@ -15,10 +16,10 @@ private:
 
     void player_input();
 
-    void update_velocity(World* world);
+    void update_velocity(World* world, float dt);
     float get_gravity();
 
-    void resolve_collisions(World* world);
+    void resolve_collisions(World* world, float dt);
 
 protected:
     Vector2 old_pos = { 0 };

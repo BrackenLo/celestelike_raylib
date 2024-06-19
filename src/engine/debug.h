@@ -26,6 +26,7 @@ private:
     // Toggles
     bool is_log_enabled = false;
     bool is_level_editor_enabled = false;
+    bool is_slow_mode = false;
 
     // Logging stuff
     std::vector<std::string> messages_0;

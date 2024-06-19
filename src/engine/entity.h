@@ -11,6 +11,7 @@ public:
 
     ~Entity() { }
     virtual void update(class World* world) {};
+    virtual void fixed_update(class World* world, float dt) {};
     virtual void render(class World* world) {};
 
     Vector2 pos;

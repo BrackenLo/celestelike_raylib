@@ -76,8 +76,9 @@ std::vector<CollisionEntity*> World::check_overlap(CollisionEntity* to_check)
 
 //====================================================================
 
-void World::init()
+void World::init(PhysicsData* new_physics_data)
 {
+    physics_data = new_physics_data;
     camera.reset();
 }
 
@@ -92,6 +93,15 @@ void World::update()
     camera.update(this);
 
     debug.update(this);
+}
+
+void World::fixed_update(float dt)
+{
+    for (Solid* solid : solids)
+        solid->fixed_update(this, dt);
+
+    for (Actor* actor : actors)
+        actor->fixed_update(this, dt);
 }
 
 void World::render()

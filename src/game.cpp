@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include "engine/physics.h"
 #include "game/simple_world.h"
 #include "raylib.h"
 
@@ -15,15 +16,27 @@ int Game::run()
     // InitAudioDevice();
 
     SetTargetFPS(60);
+    // SetTargetFPS(75);
     SetWindowState(ConfigFlags::FLAG_WINDOW_RESIZABLE);
     // SetExitKey(0);
 
     SetTraceLogLevel(TraceLogLevel::LOG_ALL);
 
-    world->init();
+    PhysicsData data;
+
+    world->init(&data);
 
     while (!WindowShouldClose()) {
         world->update();
+
+        data.accumulator += GetFrameTime();
+
+        if (data.accumulator >= data.timestep) {
+            world->fixed_update(data.timestep);
+            data.accumulator -= data.timestep;
+            data.elapsed += data.timestep;
+        }
+
         world->render();
     }
 

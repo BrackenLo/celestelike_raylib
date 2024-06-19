@@ -21,16 +21,19 @@ public:
 
     std::vector<Collision> check_collision(class CollisionEntity* to_check);
     std::vector<CollisionEntity*> check_overlap(class CollisionEntity* to_check);
-    // float check_horizontal_collision(class CollisionEntity* to_check, float horizontal_movement);
-    // float check_vertical_collision(class CollisionEntity* to_check, float vertical_movement);
+
+    inline void log(const char* text, int log = 0) { debug.add_message(text, log); }
+
+    inline PhysicsData* get_physics_data() { return physics_data; }
 
 public:
     Color clear_color;
     GameCamera camera;
 
 protected:
-    virtual void init();
+    virtual void init(PhysicsData* physics_data);
     virtual void update();
+    virtual void fixed_update(float dt);
     virtual void render();
     virtual void render_2d_inner();
 
@@ -40,9 +43,7 @@ private:
     std::vector<class Actor*> actors;
     std::vector<class Solid*> solids;
 
-public:
-    inline void add_message(const char* text, int log = 0) { debug.add_message(text, log); }
-
 private:
+    PhysicsData* physics_data;
     Debugger debug;
 };

@@ -4,5 +4,5 @@
 
 class SimpleWorld : public World {
 protected:
-    void init() override;
+    void init(PhysicsData* physics_data) override;
 };

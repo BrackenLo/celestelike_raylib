@@ -3,9 +3,9 @@
 #include "../engine/entity.h"
 #include "../game/player.h"
 
-void SimpleWorld::init()
+void SimpleWorld::init(PhysicsData* physics_data)
 {
-    World::init();
+    World::init(physics_data);
 
     add_solid(new Solid({ 0, 100 }, 1000.0f, 25.0f)); // Floor
     add_solid(new Solid({ -1000, 0 }, 25.0f, 100.0f)); // Left Wall

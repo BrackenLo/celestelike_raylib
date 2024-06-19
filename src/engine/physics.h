@@ -3,6 +3,12 @@
 #include "raylib.h"
 #include <optional>
 
+struct PhysicsData {
+    float elapsed = 0.0f;
+    float timestep = 1.0f / 60.0f;
+    float accumulator = 0.0f;
+};
+
 struct Collision {
     class CollisionEntity* entity;
     Vector2 pos;
