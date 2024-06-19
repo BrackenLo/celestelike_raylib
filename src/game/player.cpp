@@ -214,28 +214,80 @@ void Player::resolve_collisions(World* world, float dt)
 
     //----------------------------------------------
 
-    Vector2 valid_pos = old_pos;
-
     for (int step = 0; step < sub_steps; step++) {
+
         pos.x += pos_to_move_step.x;
 
-        for (CollisionEntity* value : world->check_overlap(this)) {
+        float left_nudge = 0.0f;
+        float right_nudge = 0.0f;
+
+        for (CollisionEntity* solid : world->check_overlap(this)) {
+            // TODO - optimise and reduce this
+            float dx = pos.x - solid->pos.x;
+            float px = (half_width + solid->half_width) - std::abs(dx);
+            float sx = std::copysign(1.0f, dx);
+            float depth = px * sx;
+
+            // Colliding from the right
+            if (depth > 0) {
+                right_nudge = fmax(right_nudge, depth);
+            }
+            // Colliding from the left
+            else {
+                left_nudge = fmin(left_nudge, depth);
+            }
+        }
+
+        bool hit_left = left_nudge != 0.0f;
+        bool hit_right = right_nudge != 0.0f;
+
+        if (hit_left || hit_right) {
+            // TODO - check squish
+
             world->log("X Collision", 1);
 
-            pos.x = valid_pos.x;
-            on_wall = true; // temp
+            on_wall = true;
+
+            pos.x += left_nudge + right_nudge;
         }
+
+        //----------------------------------------------
 
         pos.y += pos_to_move_step.y;
 
-        for (CollisionEntity* value : world->check_overlap(this)) {
-            world->log("Y Collision", 1);
+        float up_nudge = 0.0f;
+        float down_nudge = 0.0f;
 
-            pos.y = valid_pos.y;
-            grounded = true; // temp
+        for (CollisionEntity* solid : world->check_overlap(this)) {
+            // TODO - optimise and reduce this
+            float dy = pos.y - solid->pos.y;
+            float py = (half_height + solid->half_height) - std::abs(dy);
+            float sy = std::copysign(1.0f, dy);
+            float depth = py * sy;
+
+            // Colliding from below
+            if (depth > 0) {
+                down_nudge = fmax(down_nudge, depth);
+            }
+            // Colliding from the top
+            else {
+                up_nudge = fmin(up_nudge, depth);
+            }
         }
 
-        valid_pos = pos;
+        bool hit_top = up_nudge != 0.0f;
+        bool hit_bottom = down_nudge != 0.0f;
+
+        if (hit_top || hit_bottom) {
+            // TODO - check squish
+
+            if (hit_top)
+                grounded = true;
+            else
+                on_ceiling = true;
+
+            pos.y += up_nudge + down_nudge;
+        }
     }
 
     if (grounded) {
@@ -248,7 +300,7 @@ void Player::resolve_collisions(World* world, float dt)
         velocity.y = step(velocity.y, 0.0f, fall_gravity * dt);
 
     if (on_wall)
-        velocity.x = step(velocity.x, 0.0f, deaccel * dt * 1.3f);
+        velocity.x = step(velocity.x, 0.0f, deaccel * dt);
 }
 
 //====================================================================
