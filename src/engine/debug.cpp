@@ -3,8 +3,22 @@
 #include "../defs.h"
 #include "raygui.h"
 #include "raylib.h"
-#include "tools.h"
 #include "world.h"
+#include <cmath>
+
+void Debugger::add_message(const char* text, int log)
+{
+    switch (log) {
+    case 0:
+        messages_0.push_back(std::string(text));
+        break;
+    case 1:
+        messages_1.push_back(std::string(text));
+        break;
+    default:
+        messages_2.push_back(std::string(text));
+    }
+}
 
 void Debugger::update(World* world)
 {
@@ -13,6 +27,11 @@ void Debugger::update(World* world)
 
     if (IsKeyPressed(KEY_F2))
         is_level_editor_enabled = !is_level_editor_enabled;
+
+    if (IsKeyDown(KEY_I))
+        world->camera.zoom_target = fmin(world->camera.zoom_target + 0.2, 20.0);
+    if (IsKeyDown(KEY_O))
+        world->camera.zoom_target = fmax(world->camera.zoom_target - 0.2, 0.2);
 
     update_level_editor(world);
 }
@@ -24,18 +43,56 @@ void Debugger::render_2d(World* world)
 
 void Debugger::render(World* world)
 {
-    render_log(world);
+    if (is_log_enabled) {
+
+        messages_0.insert(messages_0.begin(), std::to_string(GetFPS()));
+
+        render_log(&messages_0, 0);
+        render_log(&messages_1, 1);
+        render_log(&messages_2, 2);
+    }
 }
 
-void Debugger::render_log(World* world)
+void Debugger::render_log(std::vector<std::string>* messages, int index)
 {
-    if (is_log_enabled) {
-        for (int x = 0; x < messages.size(); x++) {
-            DrawText(messages[x].c_str(), 20, 20 + 20 * x, 20, BLACK);
-        };
+    if (messages->empty())
+        return;
+
+    const int spacing = 20;
+    const int box_width = 500;
+    int box_height = spacing * messages->size() + 20;
+
+    int start_x = 20 + (box_width + spacing) * index;
+    const int start_y = 20;
+
+    int box_start_x = start_x - 10;
+    const int box_start_y = start_y - 10;
+
+    Color color;
+    switch (index) {
+    case 0:
+        color = SKYBLUE;
+        break;
+    case 1:
+        color = RED;
+        break;
+    default:
+        color = GREEN;
     }
 
-    messages.clear();
+    DrawRectangle(box_start_x, box_start_y, box_width, box_height, Fade(color, 0.6f));
+    DrawRectangleLines(box_start_x, box_start_y, box_width, box_height, color);
+
+    for (int x = 0; x < messages->size(); x++) {
+        DrawText(
+            (*messages)[x].c_str(),
+            start_x,
+            start_y + spacing * x,
+            20,
+            BLACK);
+    };
+
+    messages->clear();
 }
 
 void Debugger::update_level_editor(World* world)
@@ -83,22 +140,21 @@ void Debugger::render_level_editor(World* world)
         return;
 
     // Draw mouse tile
-
     DrawRectangle(
         snapped_mouse_x,
         snapped_mouse_y,
         TILE_WIDTH,
         TILE_HEIGHT,
-        BLUE);
+        Fade(BLUE, 0.4));
 
     // Draw Grid
     Vector2 pos = GetScreenToWorld2D({ 0, 0 }, world->camera.get_camera());
 
-    int origin_x = ((int)pos.x + TILE_WIDTH - 1) & -TILE_WIDTH;
-    int origin_y = ((int)pos.y + TILE_HEIGHT - 1) & -TILE_HEIGHT;
+    int origin_x = ((int)pos.x + TILE_WIDTH - 1) & -TILE_WIDTH - TILE_WIDTH;
+    int origin_y = ((int)pos.y + TILE_HEIGHT - 1) & -TILE_HEIGHT - TILE_HEIGHT;
 
-    int width = GetScreenWidth();
-    int height = GetScreenHeight();
+    int width = GetScreenWidth() + 200;
+    int height = GetScreenHeight() + 200;
 
     int end_x = origin_x + width;
     int end_y = origin_y + height;

@@ -6,6 +6,8 @@
 #include <cmath>
 #include <raylib.h>
 
+//====================================================================
+
 Player::Player()
 {
     TraceLog(TraceLogLevel::LOG_INFO, "Creating player");
@@ -29,6 +31,8 @@ void Player::update_jump_variables()
     fall_gravity = (-2.0f * jump_height) / (jump_time_to_descent * jump_time_to_descent);
     variable_jump_gravity = ((jump_impulse * jump_impulse) / (2.0f * variable_jump_height)) * -1.0f;
 }
+
+//====================================================================
 
 void Player::update(World* world)
 {
@@ -164,13 +168,6 @@ void Player::update_velocity(World* world)
     // Apply and clamp gravity
     velocity.y += get_gravity() * delta;
     velocity.y = std::fmin(velocity.y, max_fall_speed);
-
-    //----------------------------------------------
-    // Update Velocity
-
-    pos = Vector2Add(
-        pos,
-        Vector2Scale(velocity, delta));
 }
 
 float Player::get_gravity()
@@ -198,30 +195,187 @@ void Player::resolve_collisions(World* world)
     on_ceiling = false;
     on_wall = false;
 
-    for (auto collision : world->check_collision(this)) {
+    old_pos = pos;
 
-        // Has collision Below
-        if (collision.delta.y < 0.0f)
-            grounded = true;
+    //
+    //----------------------------------------------
 
-        // Has Collision Above
-        if (collision.delta.y > 0.0f)
-            on_ceiling = true;
+    Vector2 pos_to_move = Vector2Scale(velocity, delta);
 
-        // Has collision left or right
-        if (collision.delta.x != 0.0f)
-            on_wall = true;
-
-        // Has both axies of collision
-        if (collision.delta.x != 0.0f && collision.delta.y != 0.0f) {
-            // Prioritise using y axis
-            pos.y += collision.delta.y;
-            return;
-        }
-
-        pos.x += collision.delta.x;
-        pos.y += collision.delta.y;
+    if (pos_to_move.x == 0.0f) {
+        world->add_message("NOT HORIZONTAL");
     }
+    if (pos_to_move.y == 0.0f) {
+        world->add_message("NOT VERTICAL");
+    }
+
+    // int steps = Vector2Length(pos_to_move) / 10; // maybe???
+    // int steps = 5;
+
+    //
+    //----------------------------------------------
+    // Check x axis
+    // pos.x += pos_to_move.x;
+
+    // int x_nudge_left = 0;
+    // int x_nudge_right = 0;
+
+    // // Check all collisions on x axis
+    // for (Collision collision : world->check_collision(this)) {
+
+    //     world->add_message(
+    //         TextFormat(
+    //             "x collision: delta = (%d, %d), normal = (%d, %d)",
+    //             (int)collision.delta.x, (int)collision.delta.y,
+    //             (int)collision.normal.x, (int)collision.normal.y),
+    //         1);
+
+    //     // Has collision left or right
+    //     if (collision.normal.x != 0.0f)
+    //         on_wall = true;
+
+    //     // Skip resolving movement if not the thing
+    //     else
+    //         continue;
+
+    //     if (collision.delta.x > 0.) {
+    //         world->add_message("Nudge right", 2);
+    //         x_nudge_right = std::fmax(x_nudge_right, collision.delta.x);
+    //     }
+
+    //     else {
+    //         world->add_message("Nudge left", 2);
+    //         x_nudge_left = std::fmin(x_nudge_left, collision.delta.x);
+    //     }
+
+    //     // pos.x += collision.delta.x;
+    // }
+
+    // if (x_nudge_left && x_nudge_right) {
+    //     // TODO - squish
+    // }
+
+    // world->add_message(
+    //     TextFormat(
+    //         "x nudge left = %s, nudge right = %s",
+    //         int_to_str(x_nudge_left, 3).c_str(),
+    //         int_to_str(x_nudge_right, 3).c_str()),
+    //     2);
+
+    // pos.x += x_nudge_left + x_nudge_right;
+
+    //----------------------------------------------
+
+    //
+
+    pos.x += pos_to_move.x;
+
+    for (CollisionEntity* value : world->check_overlap(this)) {
+        world->add_message("X Collision", 1);
+
+        pos.x = old_pos.x;
+    }
+
+    //
+
+    pos.y += pos_to_move.y;
+
+    for (CollisionEntity* value : world->check_overlap(this)) {
+        world->add_message("Y Collision", 1);
+
+        pos.y = old_pos.y;
+    }
+
+    //----------------------------------------------
+    // Check y axis
+
+    // pos.y += pos_to_move.y;
+
+    // int y_nudge_up = 0;
+    // int y_nudge_down = 0;
+
+    // for (Collision collision : world->check_collision(this)) {
+
+    //     world->add_message(
+    //         TextFormat(
+    //             "y collision: delta = (%d, %d), normal = (%d, %d)",
+    //             (int)collision.delta.x, (int)collision.delta.y,
+    //             (int)collision.normal.x, (int)collision.normal.y),
+    //         1);
+
+    //     if (collision.normal.y == 0.0) {
+    //         continue;
+    //     }
+
+    //     // Has collision Below
+    //     if (collision.normal.y < 0.0f)
+    //         grounded = true;
+
+    //     // Has Collision Above
+    //     if (collision.normal.y > 0.0f)
+    //         on_ceiling = true;
+
+    //     // Nudge up
+    //     if (collision.delta.y > 0.0) {
+    //         world->add_message("Nudged up", 2);
+    //         y_nudge_up = std::fmax(y_nudge_up, collision.delta.y);
+    //         // y_nudge_up += collision.delta.y;
+    //     }
+
+    //     // Nudge down
+    //     else {
+    //         world->add_message("Nudged down", 2);
+    //         y_nudge_down = std::fmin(y_nudge_down, collision.delta.y);
+    //         // y_nudge_down += collision.delta.y;
+    //     }
+    // }
+
+    // if (y_nudge_down && y_nudge_up) {
+    //     // TODO - squish
+    // }
+
+    // world->add_message(
+    //     TextFormat(
+    //         "y nudge up = %s, nudge down = %s",
+    //         int_to_str(y_nudge_up, 3).c_str(),
+    //         int_to_str(y_nudge_down, 3).c_str()),
+    //     2);
+
+    // pos.y += y_nudge_up + y_nudge_down;
+
+    //----------------------------------------------
+
+    // for (auto collision : world->check_collision(this)) {
+
+    //     world->add_message(
+    //         TextFormat(
+    //             "collision: delta = (%d, %d), normal = (%d, %d)",
+    //             (int)collision.delta.x, (int)collision.delta.y,
+    //             (int)collision.normal.x, (int)collision.normal.y),
+    //         1);
+
+    //     // Has collision Below
+    //     if (collision.normal.y < 0.0f)
+    //         grounded = true;
+
+    //     // Has Collision Above
+    //     if (collision.normal.y > 0.0f)
+    //         on_ceiling = true;
+
+    //     // Has collision left or right
+    //     if (collision.normal.x != 0.0f)
+    //         on_wall = true;
+
+    //     // Has both axies of collision
+    //     if (collision.normal.x != 0.0f && collision.normal.y != 0.0f) {
+    //         // Prioritise using y axis
+    //         pos.y += collision.delta.y;
+    //         return;
+    //     }
+
+    //     pos.x += collision.delta.x;
+    //     pos.y += collision.delta.y;
+    // }
 
     if (grounded) {
         velocity.y = fmin(velocity.y, 0.0f);
@@ -236,10 +390,10 @@ void Player::resolve_collisions(World* world)
         velocity.x = step(velocity.x, 0.0f, deaccel * delta * 1.3f);
 }
 
+//====================================================================
+
 void Player::render(World* world)
 {
-    if (grounded)
-        world->add_message("GROUNDED");
 
     world->add_message(TextFormat(
         "Player Pos = (%s, %s)",
@@ -252,8 +406,13 @@ void Player::render(World* world)
         int_to_str(velocity.y, 4).c_str()));
 
     world->add_message(TextFormat("Grounded %d, On Ceiling %d, On Wall %d", grounded, on_ceiling, on_wall));
-    world->add_message(TextFormat("Time since grounded = %f.2", time_since_grounded));
+    world->add_message(TextFormat("Time since grounded = %.2f", time_since_grounded));
     world->add_message(TextFormat("Total jumps %d, remaining jumps %d", total_jumps, remaining_jumps));
+
+    if (grounded)
+        world->add_message("GROUNDED");
+    if (on_wall)
+        world->add_message("ON WALL");
 
     DrawRectangle(
         pos.x - half_width,

@@ -18,6 +18,8 @@ World::~World()
     }
 }
 
+//====================================================================
+
 bool World::destroy_actor(Actor* actor)
 {
     auto it = std::find(actors.begin(), actors.end(), actor);
@@ -40,6 +42,8 @@ bool World::destroy_solid(Solid* solid)
     return false;
 }
 
+//====================================================================
+
 std::vector<Collision> World::check_collision(CollisionEntity* to_check)
 {
     std::vector<Collision> collisions;
@@ -56,6 +60,21 @@ std::vector<Collision> World::check_collision(CollisionEntity* to_check)
 
     return collisions;
 }
+
+std::vector<CollisionEntity*> World::check_overlap(CollisionEntity* to_check)
+{
+    std::vector<CollisionEntity*> collisions;
+
+    for (Solid* solid : solids) {
+        if (overlap_aabb(solid, to_check)) {
+            collisions.push_back(solid);
+        }
+    }
+
+    return collisions;
+}
+
+//====================================================================
 
 void World::init()
 {

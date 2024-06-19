@@ -17,6 +17,9 @@ public:
     Vector2 move_target;
     Entity* follow_target;
 
+    float zoom_speed;
+    float zoom_target;
+
 private:
     Camera2D camera;
 };

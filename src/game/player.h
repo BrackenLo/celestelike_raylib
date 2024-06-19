@@ -21,6 +21,8 @@ private:
     void resolve_collisions(World* world);
 
 protected:
+    Vector2 old_pos = { 0 };
+
     // Active Player Variables
     Vector2 input_dir = { 0 };
     bool jump_held = false;

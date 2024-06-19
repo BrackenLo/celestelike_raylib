@@ -6,10 +6,7 @@
 
 class Debugger {
 public:
-    inline void add_message(const char* text)
-    {
-        messages.push_back(std::string(text));
-    }
+    void add_message(const char* text, int log);
 
 private:
     void update(class World* world);
@@ -18,7 +15,7 @@ private:
     friend class World;
 
 private:
-    void render_log(World* world);
+    void render_log(std::vector<std::string>* messages, int index);
 
     void destroy_tile(World* world);
 
@@ -31,7 +28,9 @@ private:
     bool is_level_editor_enabled = false;
 
     // Logging stuff
-    std::vector<std::string> messages;
+    std::vector<std::string> messages_0;
+    std::vector<std::string> messages_1;
+    std::vector<std::string> messages_2;
 
     // Level editor stuff
     Vector2 world_mouse_pos;

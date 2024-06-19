@@ -11,4 +11,6 @@ struct Collision {
     float time;
 };
 
+bool overlap_aabb(class CollisionEntity* entity_1, class CollisionEntity* entity_2);
+
 std::optional<Collision> intersect_aabb(class CollisionEntity* solid, class CollisionEntity* actor);

@@ -20,6 +20,9 @@ public:
     inline std::vector<class Solid*>* get_solids() { return &solids; };
 
     std::vector<Collision> check_collision(class CollisionEntity* to_check);
+    std::vector<CollisionEntity*> check_overlap(class CollisionEntity* to_check);
+    // float check_horizontal_collision(class CollisionEntity* to_check, float horizontal_movement);
+    // float check_vertical_collision(class CollisionEntity* to_check, float vertical_movement);
 
 public:
     Color clear_color;
@@ -38,7 +41,7 @@ private:
     std::vector<class Solid*> solids;
 
 public:
-    inline void add_message(const char* text) { debug.add_message(text); }
+    inline void add_message(const char* text, int log = 0) { debug.add_message(text, log); }
 
 private:
     Debugger debug;
