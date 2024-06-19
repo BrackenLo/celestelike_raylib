@@ -1,6 +1,7 @@
 #pragma once
 #include "../engine/entity.h"
 #include "raylib.h"
+#include <vector>
 
 class Player : public Actor {
 public:
@@ -47,6 +48,17 @@ protected:
 
 protected:
     // Config Player Variables
+    std::vector<int> key_up = { KEY_I };
+    std::vector<int> key_down = { KEY_K };
+    std::vector<int> key_left = { KEY_J };
+    std::vector<int> key_right = { KEY_L };
+
+    std::vector<int> key_jump = { KEY_SPACE };
+    std::vector<int> key_ability_1 = { KEY_Z };
+    std::vector<int> key_ability_2 = { KEY_X };
+    std::vector<int> key_ability_3 = { KEY_C };
+    std::vector<int> key_ability_4 = { KEY_V };
+
     float accel = 2200.0f;
     float deaccel = 2600.0f;
 

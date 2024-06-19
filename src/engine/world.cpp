@@ -5,7 +5,8 @@
 
 World::World()
 {
-    clear_color = RAYWHITE;
+    // clear_color = RAYWHITE;
+    clear_color = Color(48, 41, 40);
 }
 
 World::~World()

@@ -12,3 +12,6 @@ inline void trace(const char* msg)
 {
     TraceLog(TraceLogLevel::LOG_INFO, msg);
 }
+
+bool are_keys_down(std::vector<int> keys);
+bool are_keys_pressed(std::vector<int> keys);

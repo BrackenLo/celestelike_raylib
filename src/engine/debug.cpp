@@ -34,9 +34,11 @@ void Debugger::update(World* world)
             is_slow_mode ? 1.0f / 30.0f : 1.0f / 60.0f;
     }
 
-    if (IsKeyDown(KEY_I))
+    // Zoom in
+    if (IsKeyDown(KEY_COMMA))
         world->camera.zoom_target = fmin(world->camera.zoom_target + 0.2, 20.0);
-    if (IsKeyDown(KEY_O))
+    // Zoom out
+    if (IsKeyDown(KEY_PERIOD))
         world->camera.zoom_target = fmax(world->camera.zoom_target - 0.2, 0.2);
 
     update_level_editor(world);

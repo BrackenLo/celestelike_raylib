@@ -56,17 +56,19 @@ void Player::player_input()
     input_dir = { 0 };
 
     // Get movement directions
-    if (IsKeyDown(KEY_A))
+    // Left and right
+    if (are_keys_down(key_left))
         input_dir.x -= 1.0f;
-    if (IsKeyDown(KEY_D))
+    if (are_keys_down(key_right))
         input_dir.x += 1.0f;
 
-    if (IsKeyDown(KEY_W))
+    // Up and down
+    if (are_keys_down(key_up))
         input_dir.y -= 1.0f;
-    if (IsKeyDown(KEY_S))
+    if (are_keys_down(key_down))
         input_dir.y += 1.0f;
 
-    jump_held = IsKeyDown(KEY_SPACE);
+    jump_held = are_keys_down(key_jump);
 
     // Tick jump buffer
     if (jump_pressed) {
@@ -78,7 +80,7 @@ void Player::player_input()
     }
 
     // Start jump buffer
-    if (IsKeyPressed(KEY_SPACE)) {
+    if (are_keys_pressed(key_jump)) {
         jump_pressed = true;
         jump_buffer = jump_buffer_size;
     }
@@ -297,7 +299,7 @@ void Player::resolve_collisions(World* world, float dt)
     }
 
     if (on_ceiling && velocity.y < 0.0f)
-        velocity.y = step(velocity.y, 0.0f, fall_gravity * dt);
+        velocity.y = step(velocity.y, 0.0f, fall_gravity * dt * 0.5);
 
     if (on_wall)
         velocity.x = step(velocity.x, 0.0f, deaccel * dt);

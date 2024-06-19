@@ -20,3 +20,21 @@ std::string int_to_str(int val, int len = 5)
 
     return std::string(remain, ' ') + str;
 }
+
+bool are_keys_down(std::vector<int> keys)
+{
+    for (int key : keys)
+        if (IsKeyDown(key))
+            return true;
+
+    return false;
+}
+
+bool are_keys_pressed(std::vector<int> keys)
+{
+    for (int key : keys)
+        if (IsKeyPressed(key))
+            return true;
+
+    return false;
+}
