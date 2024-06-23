@@ -4,6 +4,8 @@
 #include "game/simple_world.h"
 #include "raylib.h"
 
+#include "raygui.h"
+
 Game::Game()
 {
     TraceLog(TraceLogLevel::LOG_INFO, "Constructing Game");
@@ -21,9 +23,9 @@ int Game::run()
     // SetExitKey(0);
 
     SetTraceLogLevel(TraceLogLevel::LOG_ALL);
+    GuiLoadStyle("style_candy.rgs");
 
     PhysicsData data;
-
     world->init(&data);
 
     while (!WindowShouldClose()) {

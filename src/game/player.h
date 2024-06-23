@@ -1,9 +1,10 @@
 #pragma once
+#include "../engine/debug.h"
 #include "../engine/entity.h"
 #include "raylib.h"
 #include <vector>
 
-class Player : public Actor {
+class Player : public Actor, public IDebug {
 public:
     Player();
     Player(Vector2 pos);
@@ -77,4 +78,9 @@ protected:
     float wall_slide_gravity = 300.0f; // TODO
     // Vector2 wall_jump_impulse = { 400.0f, -500.0f };
     float wall_jump_impulse_x = 500.0f;
+
+public:
+    virtual const char* get_name() override;
+    virtual std::vector<std::string> get_properties() override;
+    virtual void get_property_type(const int index, PropertyType* value_type, void* value) override;
 };

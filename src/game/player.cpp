@@ -335,3 +335,30 @@ void Player::render(World* world)
         half_height * 2,
         RED);
 }
+
+//====================================================================
+
+const char* Player::get_name()
+{
+    return "player";
+}
+
+std::vector<std::string> Player::get_properties()
+{
+    return {
+        "hello"
+    };
+}
+
+void Player::get_property_type(const int index, PropertyType* value_type, void* value)
+{
+    if (index == 0) {
+        *value_type = PropertyType::Boolean;
+        value = &jump_pressed;
+    } else {
+        *value_type = PropertyType::None;
+        value = nullptr;
+    }
+
+    return;
+}
