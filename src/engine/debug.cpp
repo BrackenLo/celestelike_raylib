@@ -2,6 +2,7 @@
 
 #include "../defs.h"
 #include "raylib.h"
+#include "ui.h"
 #include "world.h"
 #include <cmath>
 
@@ -206,15 +207,17 @@ void Debugger::render_level_menu(World* world)
 
 void Debugger::render_inspector_menu(World* world)
 {
+    // Window
     if (GuiWindowBox(menu_rect, "Inspector")) {
         current_menu = DebugMenu::Main;
     }
 
     //----------------------------------------------
+    // Top, entity selection area
 
     GuiLabel({ menu_rect.x + 24, menu_rect.y + 32, 96, 24 }, "Entities");
 
-    int result = 0;
+    int inspector_list_active_previous = inspector_list_active;
 
     if (debug_entities.empty()) {
         GuiPanel({ menu_rect.x + 8, menu_rect.y + 64, 128, 128 }, NULL);
@@ -228,7 +231,7 @@ void Debugger::render_inspector_menu(World* world)
 
         entity_list.erase(0, 1);
 
-        result = GuiListView(
+        GuiListView(
             { menu_rect.x + 8, menu_rect.y + 64, 128, 128 },
             entity_list.c_str(),
             &inspector_list_scroll_index,
@@ -241,95 +244,47 @@ void Debugger::render_inspector_menu(World* world)
 
     GuiLabel({ menu_rect.x + 152, menu_rect.y + 112, 120, 24 }, TextFormat("active = %d", inspector_list_active));
     GuiLabel({ menu_rect.x + 152, menu_rect.y + 144, 120, 24 }, TextFormat("enttiy active = %d", entity_list_active));
-    GuiLabel({ menu_rect.x + 152, menu_rect.y + 168, 120, 24 }, TextFormat("Result = %d", result));
 
+    // Check if a new entity has been selected
     const bool entity_changed = inspector_list_active_previous != inspector_list_active;
-    inspector_list_active_previous = inspector_list_active;
 
     //----------------------------------------------
+    // Bottom property selection + access area
 
     GuiLine({ menu_rect.x + 8, menu_rect.y + 192, 264, 16 }, NULL);
 
-    float tweak_panel_height = 120;
-    float value_panel_height = menu_rect.height - menu_rect.y - 208 - tweak_panel_height - 10;
+    float value_panel_height = menu_rect.height - menu_rect.y - 208;
     float property_y = menu_rect.y + 208 + value_panel_height + 10;
 
-    // If we have valid entity
-    if (inspector_list_active >= 0 && inspector_list_active < debug_entities.size()) {
+    Rectangle property_list_rect = { menu_rect.x + 8, menu_rect.y + 208, 272, value_panel_height };
 
+    // We don't have a valid entity
+    if (inspector_list_active < 0 || inspector_list_active >= debug_entities.size()) {
+        // Draw empty panel
+        GuiPanel(property_list_rect, NULL);
+    }
+
+    // We have valid entity
+    else {
+
+        // We have a new entity
+        // Reset values and get it's properties
         if (entity_changed) {
-            entity_properties = "";
-
-            std::vector<std::string> properties = debug_entities[inspector_list_active]->get_properties();
-
-            for (std::string val : properties) {
-                entity_properties += ";" + val;
-            }
-            entity_properties.erase(0, 1);
+            entity_properties.clear();
+            debug_entities[inspector_list_active]->get_properties(&entity_properties);
 
             entity_list_scroll_index = 0;
             entity_list_active = -1;
-            entity_list_active_previous = -1;
-
-            entity_property_count = properties.size();
         }
 
-        if (entity_properties == "") {
-            GuiPanel({ menu_rect.x + 8, menu_rect.y + 208, 272, value_panel_height }, NULL);
-            // Empty property panel
-            GuiPanel({ menu_rect.x + 8, property_y, 272, tweak_panel_height }, NULL);
+        // no properties
+        if (entity_properties.size() == 0) {
+            // Draw empty panel
+            GuiPanel(property_list_rect, NULL);
             return;
         }
 
-        // Entity Properties
-        GuiListView(
-            { menu_rect.x + 8, menu_rect.y + 208, 272, value_panel_height },
-            entity_properties.c_str(),
-            &entity_list_scroll_index,
-            &entity_list_active);
-
-        const bool property_changed = entity_list_active != entity_list_active_previous;
-        entity_list_active_previous = entity_list_active;
-
-        // Empty property panel
-        GuiPanel({ menu_rect.x + 8, property_y, 272, tweak_panel_height }, NULL);
-
-        // Get new property data
-        if (entity_list_active >= 0 && entity_list_active < entity_property_count) {
-            if (property_changed) {
-                debug_entities[inspector_list_active]->get_property_type(
-                    entity_list_active,
-                    &property_current_type,
-                    property_current_pointer);
-            }
-
-            switch (property_current_type) {
-            case None:
-                break;
-            case Boolean: {
-                bool* toggle = reinterpret_cast<bool*>(property_current_pointer);
-
-                GuiToggle({ menu_rect.x + 16, property_y + 10, 88, 24 }, "Toggle", toggle);
-                break;
-            }
-            case String:
-                break;
-            case Float:
-                break;
-            }
-        }
-
-    } else {
-        GuiPanel({ menu_rect.x + 8, menu_rect.y + 208, 272, value_panel_height }, NULL);
-        // Empty property panel
-        GuiPanel(
-            {
-                menu_rect.x + 8,
-                property_y,
-                272,
-                tweak_panel_height //
-            },
-            NULL);
+        GuiPropertyListView(property_list_rect, entity_properties, &entity_list_scroll_index);
     }
 }
 

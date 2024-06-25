@@ -2,6 +2,7 @@
 
 #include "raylib.h"
 #include <string>
+#include <variant>
 #include <vector>
 
 enum DebugMenu {
@@ -10,11 +11,14 @@ enum DebugMenu {
     Inspector,
 };
 
-enum PropertyType {
-    None,
-    Boolean,
-    String,
-    Float,
+using PropertyType = std::variant<int*, bool*, float*, Vector2*>;
+
+struct DebugProperty {
+    const char* name;
+    PropertyType property_type;
+    bool can_edit = true; // TODO - isn't used yet
+    int min_val = -999;
+    int max_val = 999;
 };
 
 class Debugger {
@@ -63,17 +67,12 @@ private:
     // Debug Menu - Inspector
     int inspector_list_scroll_index = 0;
     int inspector_list_active = -1;
-    int inspector_list_active_previous = -1;
 
     std::vector<class IDebug*> debug_entities;
-    std::string entity_properties = "";
-    int entity_property_count = 0;
     int entity_list_scroll_index = 0;
     int entity_list_active = -1;
-    int entity_list_active_previous = -1;
 
-    PropertyType property_current_type = PropertyType::None;
-    void* property_current_pointer;
+    std::vector<DebugProperty> entity_properties;
 
     //----------------------------------------------
     // Logging stuff
@@ -91,6 +90,5 @@ private:
 class IDebug {
 public:
     virtual const char* get_name() = 0;
-    virtual std::vector<std::string> get_properties() = 0;
-    virtual void get_property_type(const int index, PropertyType* value_type, void* value) = 0;
+    virtual void get_properties(std::vector<DebugProperty>* properties) = 0;
 };

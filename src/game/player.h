@@ -1,10 +1,9 @@
 #pragma once
-#include "../engine/debug.h"
 #include "../engine/entity.h"
 #include "raylib.h"
 #include <vector>
 
-class Player : public Actor, public IDebug {
+class Player : public Actor {
 public:
     Player();
     Player(Vector2 pos);
@@ -81,6 +80,5 @@ protected:
 
 public:
     virtual const char* get_name() override;
-    virtual std::vector<std::string> get_properties() override;
-    virtual void get_property_type(const int index, PropertyType* value_type, void* value) override;
+    virtual void get_properties(std::vector<DebugProperty>* properties) override;
 };

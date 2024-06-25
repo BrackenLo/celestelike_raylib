@@ -338,27 +338,13 @@ void Player::render(World* world)
 
 //====================================================================
 
-const char* Player::get_name()
-{
-    return "player";
-}
+const char* Player::get_name() { return "player"; }
 
-std::vector<std::string> Player::get_properties()
+void Player::get_properties(std::vector<DebugProperty>* properties)
 {
-    return {
-        "hello"
-    };
-}
+    Actor::get_properties(properties);
 
-void Player::get_property_type(const int index, PropertyType* value_type, void* value)
-{
-    if (index == 0) {
-        *value_type = PropertyType::Boolean;
-        value = &jump_pressed;
-    } else {
-        *value_type = PropertyType::None;
-        value = nullptr;
-    }
-
-    return;
+    properties->push_back(DebugProperty { "jump_impulse", &jump_impulse, false, -999, 0 });
+    properties->push_back(DebugProperty { "jump_gravity", &jump_gravity, false });
+    properties->push_back(DebugProperty { "total_jumps", &total_jumps, true });
 }

@@ -40,4 +40,11 @@ void CollisionEntity::render(World* world)
 
 //====================================================================
 
+void Actor::get_properties(std::vector<DebugProperty>* properties)
+{
+    properties->push_back(DebugProperty { "position", &pos, true, -99999999, 99999999 });
+    properties->push_back(DebugProperty { "half_width", &half_width, true, -99999999, 99999999 });
+    properties->push_back(DebugProperty { "half_height", &half_height, true, -99999999, 99999999 });
+}
+
 //====================================================================
