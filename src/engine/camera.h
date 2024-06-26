@@ -3,7 +3,7 @@
 #include "entity.h"
 #include "raylib.h"
 
-class GameCamera : public Entity {
+class GameCamera : public Entity, public IDebug {
 
 public:
     GameCamera();
@@ -22,4 +22,8 @@ public:
 
 private:
     Camera2D camera;
+
+public:
+    virtual inline const char* get_name() override { return "camera"; }
+    virtual void get_properties(std::vector<DebugProperty>* properties) override;
 };

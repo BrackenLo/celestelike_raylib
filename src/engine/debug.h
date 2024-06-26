@@ -11,12 +11,13 @@ enum DebugMenu {
     Inspector,
 };
 
+// TODO - add spacing decorative variant + other variants
 using PropertyType = std::variant<int*, bool*, float*, Vector2*>;
 
 struct DebugProperty {
     const char* name;
     PropertyType property_type;
-    bool can_edit = true; // TODO - isn't used yet
+    bool can_edit = true;
     int min_val = -999;
     int max_val = 999;
 };

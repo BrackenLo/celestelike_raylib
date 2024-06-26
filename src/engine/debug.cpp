@@ -299,6 +299,12 @@ void Debugger::build_inspector_menu(World* world)
 
         debug_entities.push_back(debug_actor);
     }
+
+    {
+        IDebug* debug_actor = dynamic_cast<IDebug*>(&world->camera);
+        if (debug_actor)
+            debug_entities.push_back(debug_actor);
+    }
 }
 
 //====================================================================

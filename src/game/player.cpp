@@ -344,7 +344,18 @@ void Player::get_properties(std::vector<DebugProperty>* properties)
 {
     Actor::get_properties(properties);
 
-    properties->push_back(DebugProperty { "jump_impulse", &jump_impulse, false, -999, 0 });
-    properties->push_back(DebugProperty { "jump_gravity", &jump_gravity, false });
-    properties->push_back(DebugProperty { "total_jumps", &total_jumps, true });
+    properties->push_back({ "input_dir", &input_dir, false });
+    properties->push_back({ "jump_held", &jump_held, false });
+    // properties->push_back({ "jump_pressed", &jump_pressed, false });
+
+    properties->push_back({ "velocity", &velocity, false });
+    properties->push_back({ "accel", &accel, true, 0, 99999 });
+    properties->push_back({ "deaccel", &deaccel, true, 0, 99999 });
+    properties->push_back({ "max_velocity_x", &max_velocity_x, true, 0, 99999 });
+    properties->push_back({ "max_fall_speed", &max_fall_speed, true, 0, 99999 });
+
+    properties->push_back({ "jump_impulse", &jump_impulse, true, -9999, 0 });
+    properties->push_back({ "jump_gravity", &jump_gravity, false });
+    properties->push_back({ "fall_gravity", &fall_gravity, false });
+    properties->push_back({ "total_jumps", &total_jumps, true });
 }

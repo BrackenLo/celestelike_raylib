@@ -34,6 +34,8 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
     item_bounds.y = bounds.y + list_items_spacing + default_border_width;
     item_bounds.width = bounds.width - 2 * list_items_spacing - default_border_width;
     item_bounds.height = list_items_height;
+
+    // TODO - Property scrolling
     // if (use_scroll_bar)
     //     item_bounds.width -= list_scrollbar_width;
 
@@ -59,50 +61,59 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
     const float default_value_x = item_inner_bounds.x + default_value_width;
 
     for (int i = 0; i < properties.size(); i++) {
-
         item_inner_bounds.y = item_bounds.y + default_border_width + default_text_padding;
         DebugProperty* property = &properties[i];
+
+        Rectangle default_value_bounds = {
+            default_value_x,
+            item_inner_bounds.y,
+            default_value_width,
+            item_inner_bounds.height
+        };
 
         bool default_box = true;
         bool default_label = true;
 
         // int
         if (std::holds_alternative<int*>(property->property_type)) {
+            int* value = get<int*>(property->property_type);
 
-            bool editing = CheckCollisionPointRec(GetMousePosition(), item_bounds);
+            if (property->can_edit)
+                DrawIntSpinner(
+                    default_value_bounds,
+                    value,
+                    property->min_val,
+                    property->max_val);
 
-            GuiSpinner(
-                { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
-                NULL,
-                get<int*>(property->property_type),
-                property->min_val, property->max_val,
-                editing);
-
+            else
+                GuiStatusBar(default_value_bounds, std::to_string(*value).c_str());
         }
 
-        // bool
+        // bool - TODO
         else if (std::holds_alternative<bool*>(property->property_type)) {
-            GuiLabel(
-                { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
-                std::to_string(*get<bool*>(property->property_type)).c_str());
+            bool* value = get<bool*>(property->property_type);
+            const char* text = *value ? "True" : "False";
+
+            if (property->can_edit)
+                GuiToggle(default_value_bounds, text, value);
+
+            else
+                GuiStatusBar(default_value_bounds, text);
         }
 
         // float
         else if (std::holds_alternative<float*>(property->property_type)) {
-            // can't use floats yet - cast to ints
-            float* pointer = get<float*>(property->property_type);
-            int val = static_cast<int>(*pointer);
+            float* value = get<float*>(property->property_type);
 
-            bool editing = CheckCollisionPointRec(GetMousePosition(), item_bounds);
-
-            GuiSpinner(
-                { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
-                NULL,
-                &val,
-                property->min_val, property->max_val,
-                editing);
-
-            *pointer = static_cast<float>(val);
+            if (property->can_edit)
+                DrawFloatSpinner(
+                    default_value_bounds,
+                    value,
+                    property->min_val, property->max_val);
+            else
+                GuiStatusBar(
+                    default_value_bounds,
+                    std::to_string(*value).c_str());
         }
 
         // Vec2
@@ -110,6 +121,7 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
             default_box = false;
             default_label = false;
 
+            // Draw big box (two rows)
             GuiGroupBox(
                 { item_bounds.x,
                     item_bounds.y,
@@ -117,50 +129,46 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
                     item_bounds.height + list_items_height + list_items_spacing },
                 NULL);
 
+            // Get property name (to append .x and .y)
             std::string property_name = (property->name);
+            Vector2* value = get<Vector2*>(property->property_type);
 
+            // Draw x label
             GuiLabel(
                 { item_inner_bounds.x, item_inner_bounds.y, default_label_width, item_inner_bounds.height },
                 (property_name + ".x").c_str());
 
-            // can't use floats yet - cast to ints
-            float* pointer_x = &get<Vector2*>(property->property_type)->x;
-            int val_x = static_cast<int>(*pointer_x);
+            // Draw x value
+            if (property->can_edit)
+                DrawFloatSpinner(
+                    default_value_bounds,
+                    &value->x,
+                    property->min_val, property->max_val);
+            else
+                GuiStatusBar(
+                    default_value_bounds,
+                    std::to_string(value->x).c_str());
 
-            bool editing_x = CheckCollisionPointRec(GetMousePosition(), item_bounds);
-
-            GuiSpinner(
-                { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
-                NULL,
-                &val_x,
-                property->min_val, property->max_val,
-                editing_x);
-
-            *pointer_x = static_cast<float>(val_x);
-
-            // ---
-
-            item_bounds.y += list_items_height + list_items_spacing;
+            // Add spacing
+            item_bounds.y
+                += list_items_height + list_items_spacing;
             item_inner_bounds.y = item_bounds.y + default_border_width + default_text_padding;
 
+            // Draw y label
             GuiLabel(
                 { item_inner_bounds.x, item_inner_bounds.y, default_label_width, item_inner_bounds.height },
                 (property_name + ".y").c_str());
 
-            // can't use floats yet - cast to ints
-            float* pointer_y = &get<Vector2*>(property->property_type)->y;
-            int val_y = static_cast<int>(*pointer_y);
-
-            bool editing_y = CheckCollisionPointRec(GetMousePosition(), item_bounds);
-
-            GuiSpinner(
-                { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
-                NULL,
-                &val_y,
-                property->min_val, property->max_val,
-                editing_y);
-
-            *pointer_y = static_cast<float>(val_y);
+            // Draw y value
+            if (property->can_edit)
+                DrawFloatSpinner(
+                    { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
+                    &value->y,
+                    property->min_val, property->max_val);
+            else
+                GuiStatusBar(
+                    { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
+                    std::to_string(value->y).c_str());
         }
 
         if (default_box)
@@ -176,4 +184,42 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
     }
 
     return 0;
+}
+
+void DrawIntSpinner(Rectangle bounds, int* pointer, int min_val, int max_val)
+{
+    bool editing = CheckCollisionPointRec(GetMousePosition(), bounds);
+
+    if (editing) {
+        if (IsKeyPressed(KEY_MINUS))
+            *pointer *= -1;
+
+        const bool minus_pressed = IsKeyPressed(KEY_MINUS);
+        int scroll_dir = GetMouseWheelMoveV().y;
+
+        if (IsKeyDown(KEY_LEFT_SHIFT)) {
+            scroll_dir *= 10;
+        }
+        if (IsKeyDown(KEY_LEFT_CONTROL)) {
+            scroll_dir *= 100;
+        }
+        *pointer += scroll_dir;
+    }
+
+    GuiSpinner(
+        bounds,
+        NULL,
+        pointer,
+        min_val, max_val,
+        editing);
+}
+
+void DrawFloatSpinner(Rectangle bounds, float* pointer, int min_val, int max_val)
+{
+    // TODO - can't use floats yet - cast to int
+    int val = static_cast<int>(*pointer);
+
+    DrawIntSpinner(bounds, &val, min_val, max_val);
+
+    *pointer = static_cast<float>(val);
 }

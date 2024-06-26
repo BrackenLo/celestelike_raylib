@@ -10,7 +10,7 @@ GameCamera::GameCamera()
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-    speed = 2;
+    speed = 2; // TODO - Split into x and y components
     move_target = { 0 };
     follow_target = nullptr;
 
@@ -41,4 +41,17 @@ void GameCamera::reset()
         GetScreenWidth() / 2.0f,
         GetScreenHeight() / 2.0f
     };
+}
+
+void GameCamera::get_properties(std::vector<DebugProperty>* properties)
+{
+    properties->push_back({ "position", &pos, false });
+
+    properties->push_back({ "target", &camera.target, false });
+    properties->push_back({ "rotation", &camera.rotation, true, 0, 360 });
+    properties->push_back({ "speed", &speed, true, 1, 20 });
+
+    properties->push_back({ "zoom", &camera.zoom, false });
+    properties->push_back({ "zoom_speed", &zoom_speed, false });
+    properties->push_back({ "zoom_target", &zoom_target, false });
 }
