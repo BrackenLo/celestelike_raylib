@@ -4,9 +4,11 @@
 #include <optional>
 
 struct PhysicsData {
+    int fps = 60;
     float elapsed = 0.0f;
     float timestep = 1.0f / 60.0f;
     float accumulator = 0.0f;
+    bool freeze_fixed_update = false;
 };
 
 struct Collision {
@@ -18,5 +20,4 @@ struct Collision {
 };
 
 bool overlap_aabb(class CollisionEntity* entity_1, class CollisionEntity* entity_2);
-
 std::optional<Collision> intersect_aabb(class CollisionEntity* solid, class CollisionEntity* actor);

@@ -10,6 +10,16 @@ float step(float val, float target, float step)
         return std::fmin((val + step), target);
 }
 
+int round_to(int num, int multiple)
+{
+    // TODO - find more optimised solution? this one rounds up by default
+    int is_positive = (int)(num >= 0);
+    return ((num + is_positive * (multiple - 1)) / multiple) * multiple - multiple;
+
+    // for use with multiples of two
+    // return (((int)num + multiple - 1) & -multiple) - multiple;
+}
+
 std::string int_to_str(int val, int len = 5)
 {
     std::string str = std::to_string(val);

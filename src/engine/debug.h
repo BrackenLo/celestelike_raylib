@@ -9,6 +9,7 @@ enum DebugMenu {
     Main,
     LevelSelect,
     Inspector,
+    Physics,
 };
 
 // TODO - add spacing decorative variant + other variants
@@ -41,6 +42,7 @@ private:
     void render_level_menu(World* world);
     void render_inspector_menu(World* world);
     void build_inspector_menu(World* world);
+    void render_physics_menu(World* world);
 
     void destroy_tile(World* world);
 

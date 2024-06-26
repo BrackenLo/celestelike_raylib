@@ -2,6 +2,7 @@
 
 #include "../defs.h"
 #include "raylib.h"
+#include "tools.h"
 #include "ui.h"
 #include "world.h"
 #include <cmath>
@@ -169,6 +170,9 @@ void Debugger::render_debug_menu(World* world)
         build_inspector_menu(world);
         render_inspector_menu(world);
         return;
+    case Physics:
+        render_physics_menu(world);
+        return;
     case Main:
         break;
     }
@@ -181,6 +185,10 @@ void Debugger::render_debug_menu(World* world)
 
     if (GuiButton({ menu_rect.x + 24, menu_rect.y + 96, 240, 48 }, "Inspector")) {
         current_menu = DebugMenu::Inspector;
+    }
+
+    if (GuiButton({ menu_rect.x + 24, menu_rect.y + 168, 240, 48 }, "Physics")) {
+        current_menu = DebugMenu::Physics;
     }
 }
 
@@ -307,6 +315,55 @@ void Debugger::build_inspector_menu(World* world)
     }
 }
 
+void Debugger::render_physics_menu(World* world)
+{
+    if (GuiWindowBox(menu_rect, "Physics Menu")) {
+        current_menu = DebugMenu::Main;
+    }
+
+    PhysicsData* data = world->get_physics_data();
+
+    GuiLabel({ menu_rect.x + 24, menu_rect.y + 48, 120, 24 }, "Elapsed");
+    GuiLabel({ menu_rect.x + 24, menu_rect.y + 72, 120, 24 }, "Accumulator");
+    GuiLabel({ menu_rect.x + 24, menu_rect.y + 96, 120, 24 }, "Timestep");
+
+    GuiStatusBar({ menu_rect.x + 144, menu_rect.y + 48, 120, 24 }, std::to_string(data->elapsed).c_str());
+    GuiStatusBar({ menu_rect.x + 144, menu_rect.y + 72, 120, 24 }, std::to_string(data->accumulator).c_str());
+    GuiStatusBar({ menu_rect.x + 144, menu_rect.y + 96, 120, 24 }, std::to_string(data->timestep).c_str());
+
+    GuiLabel({ menu_rect.x + 24, menu_rect.y + 144, 120, 24 }, "Frames per second");
+    GuiLabel({ menu_rect.x + 24, menu_rect.y + 168, 120, 24 }, "Fixed updates per second");
+    GuiLabel({ menu_rect.x + 24, menu_rect.y + 192, 120, 24 }, "Freeze fixed updates");
+
+    Vector2 mouse_pos = GetMousePosition();
+    Rectangle edit_rect = { menu_rect.x + 144, menu_rect.y + 144, 120, 24 };
+    bool editing = false;
+
+    // FPS
+    int* fps = &data->fps;
+    int old_fps = *fps;
+    editing = CheckCollisionPointRec(mouse_pos, edit_rect);
+
+    GuiSpinner(edit_rect, NULL, fps, 5, 255, editing);
+    if (*fps != old_fps) {
+        SetTargetFPS(*fps);
+    }
+
+    // Fixed FPS
+    edit_rect.y = menu_rect.y + 168;
+    int fixed_update = std::round(1.0f / data->timestep);
+    int old_fixed_update = fixed_update;
+    editing = CheckCollisionPointRec(mouse_pos, edit_rect);
+
+    GuiSpinner(edit_rect, NULL, &fixed_update, 0, 255, editing);
+    if (fixed_update != old_fixed_update)
+        data->timestep = 1.0f / fixed_update;
+
+    // Freeze
+    edit_rect.y = menu_rect.y + 192;
+    GuiCheckBox({ menu_rect.x + 144, menu_rect.y + 192, 24, 24 }, NULL, &data->freeze_fixed_update);
+}
+
 //====================================================================
 // Level editor update and render
 
@@ -317,8 +374,8 @@ void Debugger::update_level_editor(World* world)
 
     world_mouse_pos = GetScreenToWorld2D(GetMousePosition(), world->camera.get_camera());
 
-    snapped_mouse_x = (((int)world_mouse_pos.x + TILE_WIDTH - 1) & -TILE_WIDTH) - TILE_WIDTH;
-    snapped_mouse_y = (((int)world_mouse_pos.y + TILE_HEIGHT - 1) & -TILE_HEIGHT) - TILE_HEIGHT;
+    snapped_mouse_x = round_to(world_mouse_pos.x, TILE_WIDTH);
+    snapped_mouse_y = round_to(world_mouse_pos.y, TILE_HEIGHT);
 
     bool mouse_left = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
     bool mouse_right = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
@@ -365,8 +422,8 @@ void Debugger::render_level_editor(World* world)
     // Draw Grid
     Vector2 pos = GetScreenToWorld2D({ 0, 0 }, world->camera.get_camera());
 
-    int origin_x = ((int)pos.x + TILE_WIDTH - 1) & -TILE_WIDTH - TILE_WIDTH;
-    int origin_y = ((int)pos.y + TILE_HEIGHT - 1) & -TILE_HEIGHT - TILE_HEIGHT;
+    int origin_x = round_to(pos.x, TILE_WIDTH);
+    int origin_y = round_to(pos.y, TILE_HEIGHT);
 
     int width = GetScreenWidth() + 200;
     int height = GetScreenHeight() + 200;

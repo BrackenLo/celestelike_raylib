@@ -17,8 +17,6 @@ int Game::run()
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
     // InitAudioDevice();
 
-    SetTargetFPS(60);
-    // SetTargetFPS(75);
     SetWindowState(ConfigFlags::FLAG_WINDOW_RESIZABLE);
     // SetExitKey(0);
 
@@ -28,10 +26,12 @@ int Game::run()
     PhysicsData data;
     world->init(&data);
 
+    SetTargetFPS(data.fps);
+
     while (!WindowShouldClose()) {
         world->update();
 
-        data.accumulator += GetFrameTime();
+        data.accumulator += GetFrameTime() * !data.freeze_fixed_update;
 
         if (data.accumulator >= data.timestep) {
             world->fixed_update(data.timestep);
