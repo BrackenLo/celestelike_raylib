@@ -52,6 +52,7 @@ int World::run()
         render();
     }
 
+    TraceLog(TraceLogLevel::LOG_INFO, "Closing program");
     CloseWindow();
     return 0;
 }
@@ -250,6 +251,8 @@ bool World::load_level(const char* level_file_name)
 
 void World::init()
 {
+    TraceLog(TraceLogLevel::LOG_INFO, "Initializing world!");
+
     camera.reset();
 
     // Try load default level or spawn default

@@ -1,29 +1,106 @@
 #pragma once
 #include "../engine/entity.h"
 #include "../engine/save.h"
+#include "cereal/details/helpers.hpp"
 #include "raylib.h"
 #include <vector>
 
+enum class PlayerType {
+    Base,
+    Avian,
+};
+
+//====================================================================
+
+class PlayerInner : public IDebug {
+public:
+    friend class Player;
+
+    PlayerInner(class Player* outer);
+
+protected:
+    virtual void update(class World* world);
+    virtual void fixed_update(class World* world, float dt);
+    virtual void render(class World* world);
+
+    virtual bool do_jump(class World* world, float dt);
+    virtual bool do_wall_jump(class World* world, float dt);
+    virtual void on_grounded(class World* world, float dt);
+    virtual void on_ceiling(class World* world, float dt);
+    virtual void on_wall(class World* world, float dt);
+
+    virtual void do_ability1(class World* world, float dt);
+    virtual void do_ability2(class World* world, float dt);
+
+protected:
+    virtual void update_jump_variables();
+    void update_velocity(class World* world, float dt);
+    float get_gravity(class World* world);
+
+    inline PlayerType get_player_type() { return player_type; }
+
+protected:
+    PlayerType player_type;
+
+    // Config Player Variables
+    float accel;
+    float deaccel;
+
+    float max_velocity_x;
+    float max_fall_speed;
+
+    float jump_buffer_size;
+    float coyote_time;
+
+    float jump_height;
+    float jump_time_to_peak;
+    float jump_time_to_descent;
+    float variable_jump_height;
+    int total_jumps;
+
+    float wall_slide_gravity;
+    float wall_jump_impulse_x; // TODO - figure out a better algorithm (horizontal and vertical)
+
+protected:
+    // Managed player variables
+    class Player* outer;
+
+    float jump_impulse;
+    float jump_gravity;
+    float fall_gravity;
+    float variable_jump_gravity;
+
+public:
+    // IDebug functionality
+    virtual const char* get_name() override { return "player_inner"; }
+    virtual void get_properties(std::vector<DebugProperty>* properties) override;
+};
+
+//====================================================================
+
+//====================================================================
+
 class Player : public Actor, public IToRawData {
 public:
+    friend class PlayerInner;
+    friend class AvianPlayerInner;
+
     Player();
     Player(Vector2 pos);
+    Player(Vector2 pos, PlayerType inner_type);
 
     virtual void update(class World* world) override;
     virtual void fixed_update(class World* world, float dt) override;
     virtual void render(class World* world) override;
 
 private:
-    void update_jump_variables();
-
     void player_input();
-
-    void update_velocity(World* world, float dt);
-    float get_gravity();
-
     void resolve_collisions(World* world, float dt);
 
 protected:
+    std::unique_ptr<class PlayerInner> inner;
+    std::vector<PlayerType> player_characters = { PlayerType::Base };
+
     Vector2 old_pos = { 0 };
 
     // Active Player Variables
@@ -42,11 +119,6 @@ protected:
     bool jumping = false;
     int remaining_jumps = 1;
 
-    float jump_impulse;
-    float jump_gravity;
-    float fall_gravity;
-    float variable_jump_gravity;
-
 protected:
     // Config Player Variables
     std::vector<int> key_up = { KEY_I };
@@ -60,24 +132,7 @@ protected:
     std::vector<int> key_ability_3 = { KEY_C };
     std::vector<int> key_ability_4 = { KEY_V };
 
-    float accel = 2200.0f;
-    float deaccel = 2600.0f;
-
-    float max_velocity_x = 400.0f;
-    float max_fall_speed = 800.0f;
-
-    float jump_buffer_size = 0.1f;
-    float coyote_time = 0.09f;
-
-    float jump_height = -60.0f;
-    float jump_time_to_peak = 0.25f;
-    float jump_time_to_descent = 0.2f;
-    float variable_jump_height = -150.0f;
-    int total_jumps = 1;
-
-    float wall_slide_gravity = 300.0f; // TODO
-    // Vector2 wall_jump_impulse = { 400.0f, -500.0f };
-    float wall_jump_impulse_x = 500.0f;
+    Color player_color;
 
 public:
     // IDebug functionality
@@ -94,7 +149,9 @@ public:
 
 struct RawPlayer : public RawEntity {
     RawPlayer() { }
-    using RawEntity::RawEntity;
+    RawPlayer(int x, int y, PlayerType player_type);
+
+    PlayerType player_type;
 
     virtual std::unique_ptr<class Entity> ToEntity() override;
 
@@ -102,7 +159,8 @@ struct RawPlayer : public RawEntity {
     void serialize(Archive& archive)
     {
         archive(
-            cereal::base_class<RawEntity>(this));
+            cereal::base_class<RawEntity>(this),
+            cereal::make_nvp("type", player_type));
     }
 };
 
