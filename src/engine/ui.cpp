@@ -1,7 +1,9 @@
 #include "ui.h"
 
+#include "debug.h"
 #include "raygui.h"
 #include "raylib.h"
+#include "raymath.h"
 #include <variant>
 
 int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties, int* scroll_index)
@@ -82,8 +84,7 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
                 DrawIntSpinner(
                     default_value_bounds,
                     value,
-                    property->min_val,
-                    property->max_val);
+                    property);
 
             else
                 GuiStatusBar(default_value_bounds, std::to_string(*value).c_str());
@@ -109,7 +110,7 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
                 DrawFloatSpinner(
                     default_value_bounds,
                     value,
-                    property->min_val, property->max_val);
+                    property);
             else
                 GuiStatusBar(
                     default_value_bounds,
@@ -143,7 +144,7 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
                 DrawFloatSpinner(
                     default_value_bounds,
                     &value->x,
-                    property->min_val, property->max_val);
+                    property);
             else
                 GuiStatusBar(
                     default_value_bounds,
@@ -164,7 +165,7 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
                 DrawFloatSpinner(
                     { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
                     &value->y,
-                    property->min_val, property->max_val);
+                    property);
             else
                 GuiStatusBar(
                     { default_value_x, item_inner_bounds.y, default_value_width, item_inner_bounds.height },
@@ -186,7 +187,7 @@ int GuiPropertyListView(Rectangle bounds, std::vector<DebugProperty> properties,
     return 0;
 }
 
-void DrawIntSpinner(Rectangle bounds, int* pointer, int min_val, int max_val)
+void DrawIntSpinner(Rectangle bounds, int* pointer, DebugProperty* properties)
 {
     bool editing = CheckCollisionPointRec(GetMousePosition(), bounds);
 
@@ -194,7 +195,6 @@ void DrawIntSpinner(Rectangle bounds, int* pointer, int min_val, int max_val)
         if (IsKeyPressed(KEY_MINUS))
             *pointer *= -1;
 
-        const bool minus_pressed = IsKeyPressed(KEY_MINUS);
         int scroll_dir = GetMouseWheelMoveV().y;
 
         if (IsKeyDown(KEY_LEFT_SHIFT)) {
@@ -206,6 +206,9 @@ void DrawIntSpinner(Rectangle bounds, int* pointer, int min_val, int max_val)
         *pointer += scroll_dir;
     }
 
+    int min_val = static_cast<int>(properties->min_val);
+    int max_val = static_cast<int>(properties->max_val);
+
     GuiSpinner(
         bounds,
         NULL,
@@ -214,12 +217,27 @@ void DrawIntSpinner(Rectangle bounds, int* pointer, int min_val, int max_val)
         editing);
 }
 
-void DrawFloatSpinner(Rectangle bounds, float* pointer, int min_val, int max_val)
+void DrawFloatSpinner(Rectangle bounds, float* pointer, DebugProperty* properties)
 {
-    // TODO - can't use floats yet - cast to int
-    int val = static_cast<int>(*pointer);
+    // TODO - change to most rescent version of RayGui for float spinners
 
-    DrawIntSpinner(bounds, &val, min_val, max_val);
+    bool editing = CheckCollisionPointRec(GetMousePosition(), bounds);
 
-    *pointer = static_cast<float>(val);
+    if (editing) {
+        if (IsKeyPressed(KEY_MINUS))
+            *pointer *= -1;
+
+        float scroll_dir = GetMouseWheelMoveV().y * properties->scroll_scale;
+
+        if (IsKeyDown(KEY_LEFT_SHIFT)) {
+            scroll_dir *= 20;
+        }
+        if (IsKeyDown(KEY_LEFT_CONTROL)) {
+            scroll_dir *= 100;
+        }
+        *pointer += scroll_dir;
+        *pointer = Clamp(*pointer, properties->min_val, properties->max_val);
+    }
+
+    GuiStatusBar(bounds, std::to_string(*pointer).c_str());
 }

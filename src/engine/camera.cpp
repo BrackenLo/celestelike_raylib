@@ -43,6 +43,19 @@ void GameCamera::reset()
     };
 }
 
+void GameCamera::set_follow_target(Entity* target, bool snap)
+{
+    if (!target) {
+        TraceLog(TraceLogLevel::LOG_WARNING, "Camera set follow target - invalid entity provided");
+        return;
+    }
+
+    follow_target = target;
+    if (snap) {
+        pos = follow_target->pos;
+    }
+}
+
 void GameCamera::get_properties(std::vector<DebugProperty>* properties)
 {
     properties->push_back({ "position", &pos, false });
@@ -52,6 +65,6 @@ void GameCamera::get_properties(std::vector<DebugProperty>* properties)
     properties->push_back({ "speed", &speed, true, 1, 20 });
 
     properties->push_back({ "zoom", &camera.zoom, false });
-    properties->push_back({ "zoom_speed", &zoom_speed, false });
-    properties->push_back({ "zoom_target", &zoom_target, false });
+    properties->push_back({ "zoom_speed", &zoom_speed, true, 0.1, 20, 0.05 });
+    properties->push_back({ "zoom_target", &zoom_target, true, 0.1, 20, 0.05 });
 }

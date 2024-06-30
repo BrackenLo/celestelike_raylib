@@ -11,6 +11,7 @@ public:
     virtual void reset();
 
     inline Camera2D get_camera() { return camera; }
+    void set_follow_target(Entity* target, bool snap = false);
 
 public:
     float speed;
@@ -24,6 +25,7 @@ private:
     Camera2D camera;
 
 public:
+    // IDebug functionality
     virtual inline const char* get_name() override { return "camera"; }
     virtual void get_properties(std::vector<DebugProperty>* properties) override;
 };

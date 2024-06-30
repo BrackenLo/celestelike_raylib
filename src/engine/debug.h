@@ -19,8 +19,9 @@ struct DebugProperty {
     const char* name;
     PropertyType property_type;
     bool can_edit = true;
-    int min_val = -999;
-    int max_val = 999;
+    float min_val = -999;
+    float max_val = 999;
+    float scroll_scale = 1;
 };
 
 class Debugger {

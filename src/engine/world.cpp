@@ -238,7 +238,7 @@ bool World::load_level(const char* level_file_name)
         Player* player = dynamic_cast<Player*>(actor);
         if (player) {
             player_character = player;
-            camera.follow_target = player;
+            camera.set_follow_target(player_character, true);
         }
     }
 
