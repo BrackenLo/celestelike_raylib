@@ -5,6 +5,7 @@
 #include "tools.h"
 #include "ui.h"
 #include "world.h"
+#include <algorithm>
 #include <cmath>
 
 #define RAYGUI_IMPLEMENTATION
@@ -163,27 +164,28 @@ void Debugger::render_debug_menu(World* world)
     }
 
     switch (current_menu) {
-    case LevelSelect:
+    case DebugMenu::LevelSelect:
         render_level_menu(world);
         return;
-    case Inspector:
-        build_inspector_menu(world);
+    case DebugMenu::Inspector:
         render_inspector_menu(world);
         return;
-    case Physics:
+    case DebugMenu::Physics:
         render_physics_menu(world);
         return;
-    case Main:
+    case DebugMenu::Main:
         break;
     }
 
     GuiPanel(menu_rect, NULL);
 
     if (GuiButton({ menu_rect.x + 24, menu_rect.y + 24, 240, 48 }, "Level Select")) {
+        build_level_menu(world);
         current_menu = DebugMenu::LevelSelect;
     }
 
     if (GuiButton({ menu_rect.x + 24, menu_rect.y + 96, 240, 48 }, "Inspector")) {
+        build_inspector_menu(world);
         current_menu = DebugMenu::Inspector;
     }
 
@@ -200,17 +202,52 @@ void Debugger::render_level_menu(World* world)
 
     GuiListView(
         { menu_rect.x + 8, menu_rect.y + 32, 274, 104 },
-        "Todo",
+        levels_name_list.c_str(),
         &level_list_scroll_index,
         &level_list_active);
 
     if (GuiButton({ menu_rect.x + 48, menu_rect.y + 144, 192, 32 }, "Load")) {
+        if (level_list_active >= 0 && level_list_active < levels.size()) {
+            world->load_level(levels[level_list_active]);
+        }
     }
 
-    GuiLine({ menu_rect.x + 8, menu_rect.y + 184, 272, 16 }, NULL);
-    GuiTextBox({ menu_rect.x + 8, menu_rect.y + 208, 272, 48 }, level_name, 128, true);
-    if (GuiButton({ menu_rect.x + 48, menu_rect.y + 264, 182, 32 }, "Save Level")) {
+    if (GuiButton({ menu_rect.x + 48, menu_rect.y + 192, 192, 32 }, "Refresh")) {
+        build_level_menu(world);
     }
+
+    GuiLine({ menu_rect.x + 8, menu_rect.y + 232, 272, 16 }, NULL);
+
+    Rectangle text_box_rect = { menu_rect.x + 8, menu_rect.y + 256, 272, 48 };
+    bool editing = CheckCollisionPointRec(GetMousePosition(), text_box_rect);
+
+    GuiTextBox(text_box_rect, level_menu_name, 128, editing);
+    if (GuiButton({ menu_rect.x + 48, menu_rect.y + 312, 192, 32 }, "Save Level")) {
+        std::string name(level_menu_name);
+
+        name.erase(
+            std::remove_if(name.begin(), name.end(), ::isspace),
+            name.end());
+
+        if (name.empty())
+            return;
+
+        world->save_level(name.c_str());
+        build_level_menu(world);
+    }
+}
+
+void Debugger::build_level_menu(World* world)
+{
+    levels = world->get_levels();
+
+    levels_name_list.clear();
+    for (const char* level : levels) {
+        levels_name_list.append(";").append(level);
+    }
+
+    // Remove leading semi-colon
+    levels_name_list.erase(0, 1);
 }
 
 void Debugger::render_inspector_menu(World* world)
@@ -251,7 +288,6 @@ void Debugger::render_inspector_menu(World* world)
     }
 
     GuiLabel({ menu_rect.x + 152, menu_rect.y + 112, 120, 24 }, TextFormat("active = %d", inspector_list_active));
-    GuiLabel({ menu_rect.x + 152, menu_rect.y + 144, 120, 24 }, TextFormat("enttiy active = %d", entity_list_active));
 
     // Check if a new entity has been selected
     const bool entity_changed = inspector_list_active_previous != inspector_list_active;
@@ -282,7 +318,6 @@ void Debugger::render_inspector_menu(World* world)
             debug_entities[inspector_list_active]->get_properties(&entity_properties);
 
             entity_list_scroll_index = 0;
-            entity_list_active = -1;
         }
 
         // no properties
@@ -376,6 +411,10 @@ void Debugger::update_level_editor(World* world)
 
     snapped_mouse_x = round_to(world_mouse_pos.x, TILE_WIDTH);
     snapped_mouse_y = round_to(world_mouse_pos.y, TILE_HEIGHT);
+
+    // Skip if mouse in menu
+    if (is_debug_menu && CheckCollisionPointRec(GetMousePosition(), menu_rect))
+        return;
 
     bool mouse_left = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
     bool mouse_right = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);

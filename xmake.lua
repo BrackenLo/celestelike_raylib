@@ -1,13 +1,13 @@
 add_rules("mode.debug", "mode.release")
 
-add_requires("raylib", "raygui")
+add_requires("raylib", "raygui", "cereal")
 
 target("celestelike_raylib")
   set_kind("binary")
   add_files("src/*.cpp")
   add_files("src/engine/*.cpp")
   add_files("src/game/*.cpp")
-  add_packages("raylib", "raygui")
+  add_packages("raylib", "raygui", "cereal")
   set_languages("c++20")
 
   set_configdir("$(buildir)/$(plat)/$(arch)/$(mode)")  

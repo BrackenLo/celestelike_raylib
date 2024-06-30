@@ -1,7 +1,20 @@
 #include "world.h"
 
-#include "entity.h"
+#include "raylib.h"
 #include <algorithm>
+#include <cstring>
+#include <string>
+
+#include "../game/player.h"
+#include "entity.h"
+
+#include "save.h"
+#include <cereal/archives/json.hpp>
+#include <cereal/archives/portable_binary.hpp>
+#include <cereal/archives/xml.hpp>
+#include <fstream>
+
+#include "raygui.h"
 
 World::World()
 {
@@ -11,12 +24,36 @@ World::World()
 
 World::~World()
 {
-    for (auto entity : actors) {
-        delete entity;
+    clear_all();
+}
+
+int World::run()
+{
+    InitWindow(800, 450, "celestelike");
+
+    SetTraceLogLevel(TraceLogLevel::LOG_ALL);
+    GuiLoadStyle("style_candy.rgs");
+
+    SetTargetFPS(physics_data.fps);
+
+    init();
+
+    while (!WindowShouldClose()) {
+        update();
+
+        physics_data.accumulator += GetFrameTime() * !physics_data.freeze_fixed_update;
+
+        if (physics_data.accumulator >= physics_data.timestep) {
+            fixed_update(physics_data.timestep);
+            physics_data.accumulator -= physics_data.timestep;
+            physics_data.elapsed += physics_data.timestep;
+        }
+
+        render();
     }
-    for (auto entity : solids) {
-        delete entity;
-    }
+
+    CloseWindow();
+    return 0;
 }
 
 //====================================================================
@@ -41,6 +78,22 @@ bool World::destroy_solid(Solid* solid)
     }
 
     return false;
+}
+
+void World::clear_all()
+{
+    TraceLog(TraceLogLevel::LOG_INFO, "Clearing World");
+    for (auto entity : actors) {
+        delete entity;
+    }
+    actors.clear();
+
+    for (auto entity : solids) {
+        delete entity;
+    }
+    solids.clear();
+
+    player_character = nullptr;
 }
 
 //====================================================================
@@ -77,10 +130,136 @@ std::vector<CollisionEntity*> World::check_overlap(CollisionEntity* to_check)
 
 //====================================================================
 
-void World::init(PhysicsData* new_physics_data)
+std::vector<const char*> World::get_levels()
 {
-    physics_data = new_physics_data;
+    std::vector<const char*> levels;
+
+    TraceLog(TraceLogLevel::LOG_INFO, "Retrieving levels:");
+
+    FilePathList files = LoadDirectoryFiles(GetWorkingDirectory());
+    for (int i = 0; i < files.count; i++) {
+        const char* file_path = files.paths[i];
+        const char* file_name = GetFileName(file_path);
+        // TraceLog(TraceLogLevel::LOG_INFO, file_path);
+        // TraceLog(TraceLogLevel::LOG_INFO, GetFileName(file_path));
+
+        const char* ptr = strstr(file_name, "level-");
+        if (file_name == ptr) {
+            levels.push_back(file_name);
+            TraceLog(TraceLogLevel::LOG_INFO, TextFormat("   %s", file_name));
+        }
+    }
+
+    return levels;
+}
+
+bool World::save_level(const char* level_name)
+{
+    // JSON archive
+    std::string file_name;
+    file_name
+        .append("level-")
+        .append(level_name)
+        .append(".json");
+    std::ofstream file(file_name);
+    if (!file.is_open())
+        return false;
+    cereal::JSONOutputArchive archive(file);
+
+    // Binary archive
+    // std::string file_name;
+    // file_name
+    //     .append("level-")
+    //     .append(level_name)
+    //     .append(".bin")
+    // std::ofstream file(file_name, std::ios::binary);
+    // cereal::PortableBinaryOutputArchive archive(file);
+
+    // XML archive
+    // std::string file_name;
+    // file_name
+    //     .append("level-")
+    //     .append(level_name)
+    //     .append(".xml");
+    // std::ofstream file(file_name);
+    // cereal::XMLOutputArchive archive(file);
+
+    TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Saving file: %s", file_name.c_str()));
+
+    SaveData data(this);
+    archive(data);
+    return true;
+}
+
+bool World::load_level(const char* level_file_name)
+{
+    TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Loading level file: %s", level_file_name));
+
+    clear_all();
+
+    // JSON archive
+    std::string file_name(level_file_name);
+    // file_name
+    //     .append("level-")
+    //     .append(level_name)
+    //     .append(".json");
+    std::ifstream file(file_name);
+    if (!file.is_open())
+        return false;
+
+    cereal::JSONInputArchive archive(file);
+
+    SaveData data;
+    archive(data);
+
+    for (std::unique_ptr<RawEntity>& raw : data.entities) {
+        Entity* entity = raw->ToEntity().release();
+
+        Actor* actor = dynamic_cast<Actor*>(entity);
+        if (actor) {
+            TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Spawning Actor"));
+            actors.push_back(actor);
+            continue;
+        }
+
+        Solid* solid = dynamic_cast<Solid*>(entity);
+        if (solid) {
+            TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Spawning Solid"));
+            solids.push_back(solid);
+            continue;
+        }
+
+        TraceLog(TraceLogLevel::LOG_WARNING, "World load level - Entity was neither actor or solid");
+        delete entity;
+    }
+
+    for (Actor* actor : actors) {
+
+        Player* player = dynamic_cast<Player*>(actor);
+        if (player) {
+            player_character = player;
+            camera.follow_target = player;
+        }
+    }
+
+    TraceLog(TraceLogLevel::LOG_INFO, "--------World load level - Done!--------");
+    return true;
+}
+
+//====================================================================
+
+void World::init()
+{
     camera.reset();
+
+    // Try load default level or spawn default
+    if (!load_level("level-default.json")) {
+        add_solid(new Solid({ 0, 100 }, 1000.0f, 25.0f)); // Floor
+
+        Player* player = new Player({ 0, -100.0f });
+        add_actor(player);
+        camera.follow_target = player;
+    }
 }
 
 void World::update()

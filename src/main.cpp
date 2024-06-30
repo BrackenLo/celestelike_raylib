@@ -1,8 +1,7 @@
-#include "game.h"
+#include "engine/world.h"
 
 int main(void)
 {
-    Game game;
-
-    return game.run();
+    World world;
+    world.run();
 }

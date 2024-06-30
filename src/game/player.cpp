@@ -4,6 +4,7 @@
 #include "../engine/world.h"
 #include "raymath.h"
 #include <cmath>
+#include <memory>
 #include <raylib.h>
 
 //====================================================================
@@ -358,4 +359,23 @@ void Player::get_properties(std::vector<DebugProperty>* properties)
     properties->push_back({ "jump_gravity", &jump_gravity, false });
     properties->push_back({ "fall_gravity", &fall_gravity, false });
     properties->push_back({ "total_jumps", &total_jumps, true });
+}
+
+//====================================================================
+
+std::unique_ptr<class RawEntity> Player::ToRaw()
+{
+    RawPlayer* raw = new RawPlayer(pos.x, pos.y);
+    return std::unique_ptr<RawEntity>(raw);
+}
+
+std::unique_ptr<class Entity> RawPlayer::ToEntity()
+{
+    Vector2 pos = {
+        static_cast<float>(x),
+        static_cast<float>(y),
+    };
+
+    std::unique_ptr<Player> player(new Player(pos));
+    return player;
 }

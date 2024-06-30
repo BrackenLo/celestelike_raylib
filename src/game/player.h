@@ -1,9 +1,10 @@
 #pragma once
 #include "../engine/entity.h"
+#include "../engine/save.h"
 #include "raylib.h"
 #include <vector>
 
-class Player : public Actor {
+class Player : public Actor, public IToRawData {
 public:
     Player();
     Player(Vector2 pos);
@@ -79,6 +80,30 @@ protected:
     float wall_jump_impulse_x = 500.0f;
 
 public:
+    // IDebug functionality
     virtual const char* get_name() override;
     virtual void get_properties(std::vector<DebugProperty>* properties) override;
+
+public:
+    // IToRawData functionality
+    virtual std::unique_ptr<class RawEntity> ToRaw() override;
 };
+
+//====================================================================
+// Save data stuff
+
+struct RawPlayer : public RawEntity {
+    RawPlayer() { }
+    using RawEntity::RawEntity;
+
+    virtual std::unique_ptr<class Entity> ToEntity() override;
+
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(
+            cereal::base_class<RawEntity>(this));
+    }
+};
+
+CEREAL_REGISTER_TYPE(RawPlayer);

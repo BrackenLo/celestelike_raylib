@@ -5,7 +5,7 @@
 #include <variant>
 #include <vector>
 
-enum DebugMenu {
+enum class DebugMenu {
     Main,
     LevelSelect,
     Inspector,
@@ -40,6 +40,7 @@ private:
     void resize_debug_menu();
     void render_debug_menu(World* world);
     void render_level_menu(World* world);
+    void build_level_menu(World* world);
     void render_inspector_menu(World* world);
     void build_inspector_menu(World* world);
     void render_physics_menu(World* world);
@@ -65,7 +66,9 @@ private:
     // Debug Menu - Level Select
     int level_list_scroll_index = 0;
     int level_list_active = -1;
-    char level_name[128] = "Level Name";
+    std::vector<const char*> levels;
+    std::string levels_name_list;
+    char level_menu_name[128] = "Level Name";
 
     // Debug Menu - Inspector
     int inspector_list_scroll_index = 0;
@@ -73,7 +76,6 @@ private:
 
     std::vector<class IDebug*> debug_entities;
     int entity_list_scroll_index = 0;
-    int entity_list_active = -1;
 
     std::vector<DebugProperty> entity_properties;
 
