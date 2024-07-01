@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include "cereal/details/helpers.hpp"
 #include "raylib.h"
 #include <algorithm>
 #include <cstring>
@@ -205,13 +206,21 @@ bool World::load_level(const char* level_file_name)
     //     .append(level_name)
     //     .append(".json");
     std::ifstream file(file_name);
-    if (!file.is_open())
+    if (!file.is_open()) {
+        TraceLog(TraceLogLevel::LOG_WARNING, TextFormat("Could not open level '%s'", level_file_name));
         return false;
+    }
 
     cereal::JSONInputArchive archive(file);
 
     SaveData data;
-    archive(data);
+
+    try {
+        archive(data);
+    } catch (cereal::Exception val) {
+        TraceLog(TraceLogLevel::LOG_WARNING, TextFormat("Could not deserialise level '%s' - %s", level_file_name, val.what()));
+        return false;
+    }
 
     for (std::unique_ptr<RawEntity>& raw : data.entities) {
         Entity* entity = raw->ToEntity().release();

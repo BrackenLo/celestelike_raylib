@@ -239,10 +239,12 @@ Player::Player(Vector2 new_pos)
     pos = new_pos;
 }
 
-Player::Player(Vector2 new_pos, PlayerType inner_type)
+Player::Player(Vector2 new_pos, std::vector<PlayerType> characters, int index)
+    : player_characters(characters)
+    , player_character_index(index)
 {
     pos = new_pos;
-    set_inner(inner_type);
+    set_inner(characters[index]);
 }
 
 //====================================================================
@@ -520,18 +522,24 @@ void Player::get_properties(std::vector<DebugProperty>* properties)
 
 //====================================================================
 
-RawPlayer::RawPlayer(int x, int y, PlayerType player_type)
-    : RawEntity(x, y)
-    , player_type(player_type)
-{
-}
-
+// Player -> Raw
 std::unique_ptr<class RawEntity> Player::ToRaw()
 {
-    RawPlayer* raw = new RawPlayer(pos.x, pos.y, inner->get_player_type());
+    RawPlayer* raw = new RawPlayer(pos.x, pos.y, player_characters, player_character_index);
     return std::unique_ptr<RawEntity>(raw);
 }
 
+//----------------------------------------------
+
+// Raw constructor
+RawPlayer::RawPlayer(int x, int y, std::vector<PlayerType> player_characters, int player_character_index)
+    : RawEntity(x, y)
+    , player_characters(player_characters)
+    , player_character_index(player_character_index)
+{
+}
+
+// Raw -> Player
 std::unique_ptr<class Entity> RawPlayer::ToEntity()
 {
     Vector2 pos = {
@@ -539,6 +547,6 @@ std::unique_ptr<class Entity> RawPlayer::ToEntity()
         static_cast<float>(y),
     };
 
-    std::unique_ptr<Player> player(new Player(pos, player_type));
+    std::unique_ptr<Player> player(new Player(pos, player_characters, player_character_index));
     return player;
 }

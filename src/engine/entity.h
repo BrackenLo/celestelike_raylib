@@ -73,13 +73,18 @@ struct RawSolid : public RawEntity {
     virtual std::unique_ptr<class Entity> ToEntity() override;
 
     template <class Archive>
-    void serialize(Archive& archive)
+    void serialize(Archive& archive, std::uint32_t const version)
     {
+        // Version 1
         archive(
             cereal::base_class<RawEntity>(this),
             cereal::make_nvp("half_width", half_width),
             cereal::make_nvp("half_height", half_height));
+
+        // Version 2
+        // ...
     }
 };
 
 CEREAL_REGISTER_TYPE(RawSolid);
+CEREAL_CLASS_VERSION(RawSolid, 1);

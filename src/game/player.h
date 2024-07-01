@@ -87,7 +87,7 @@ public:
 
     Player();
     Player(Vector2 pos);
-    Player(Vector2 pos, PlayerType inner_type);
+    Player(Vector2 pos, std::vector<PlayerType> characters, int index);
 
     virtual void update(class World* world) override;
     virtual void fixed_update(class World* world, float dt) override;
@@ -156,20 +156,33 @@ public:
 // Save data stuff
 
 struct RawPlayer : public RawEntity {
+public:
     RawPlayer() { }
-    RawPlayer(int x, int y, PlayerType player_type);
+    RawPlayer(int x, int y, std::vector<PlayerType> player_characters, int player_character_index);
 
-    PlayerType player_type;
+public:
+    std::vector<PlayerType> player_characters;
+    int player_character_index;
+    // PlayerType player_type;
 
+public:
     virtual std::unique_ptr<class Entity> ToEntity() override;
 
     template <class Archive>
-    void serialize(Archive& archive)
+    void serialize(Archive& archive, std::uint32_t const version)
     {
+        // Version 1
         archive(
             cereal::base_class<RawEntity>(this),
-            cereal::make_nvp("type", player_type));
+            cereal::make_nvp("character_types", player_characters),
+            cereal::make_nvp("character_index", player_character_index)
+            // cereal::make_nvp("type", player_type)
+        );
+
+        // Version 2
+        // ...
     }
 };
 
 CEREAL_REGISTER_TYPE(RawPlayer);
+CEREAL_CLASS_VERSION(RawPlayer, 1);
