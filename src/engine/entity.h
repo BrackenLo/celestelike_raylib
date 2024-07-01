@@ -43,6 +43,9 @@ class Actor : public CollisionEntity, public IDebug {
     using CollisionEntity::CollisionEntity;
 
 public:
+    Rectangle get_rect();
+
+public:
     virtual inline const char* get_name() override { return "actor"; }
     virtual void get_properties(std::vector<DebugProperty>* properties) override;
 };

@@ -19,7 +19,7 @@ PlayerInner::PlayerInner(Player* outer)
     outer->half_width = 25;
     outer->half_height = 32;
 
-    outer->player_color = RED;
+    player_color = RED;
 
     accel = 2200.0f;
     deaccel = 2600.0f;
@@ -48,17 +48,72 @@ void PlayerInner::update(World* world)
 
 void PlayerInner::fixed_update(World* world, float dt)
 {
-    update_velocity(world, dt);
+    //----------------------------------------------
+    // Update X Velocity
+
+    float target_velocity = outer->input_dir.x * max_velocity_x; // TEST
+    float speed;
+
+    // Do deacceleration if no player input
+    if (outer->input_dir.x == 0.0f) // TEST
+        speed = deaccel;
+
+    // Do Acceleration
+    else {
+        float target_sign = std::copysign(1.0f, target_velocity);
+        float current_sign = std::copysign(1.0f, outer->velocity.x); // TEST
+
+        // TODO - use accel speed when velocity == 0
+        speed = (target_sign == current_sign) ? accel : deaccel;
+    }
+
+    outer->velocity.x = step(outer->velocity.x, target_velocity, speed * dt); // TEST
+
+    //----------------------------------------------
+    // Wall jump
+
+    bool is_wall_jump = false;
+
+    if (!outer->grounded && outer->jump_pressed) { // TEST
+        is_wall_jump = do_wall_jump(world, dt);
+    }
+
+    //----------------------------------------------
+    // Update Y Velocity
+
+    // Start jumping
+    if (outer->jump_pressed && !is_wall_jump) {
+        do_jump(world, dt);
+    }
+
+    // If jumping, check end jump conditions
+    if (outer->jumping && (!outer->jump_held || outer->velocity.y > 0.1))
+        outer->jumping = false;
+
+    // Apply and clamp gravity
+    outer->velocity.y += get_gravity(world) * dt;
+    outer->velocity.y = std::fmin(outer->velocity.y, max_fall_speed);
 }
 
 void PlayerInner::render(World* world)
 {
+    DrawRectangleGradientEx(
+        outer->get_rect(),
+        player_color, ORANGE, ORANGE, player_color);
 }
 
 bool PlayerInner::do_jump(World* world, float dt)
 {
+    // Check if has all jumps
     bool first_jump = outer->remaining_jumps == total_jumps;
+    // Check on ground or coyote time
     bool has_ground = outer->grounded || outer->time_since_grounded < coyote_time;
+    // If falling and didn't jump, remove first jump
+    if (first_jump && !has_ground) {
+        outer->remaining_jumps -= 1;
+        first_jump = false;
+    }
+    // Check if has jumps and is on ground with first jump or it's not the first jump
     bool can_jump = outer->remaining_jumps > 0 && ((first_jump && has_ground) || !first_jump);
 
     if (can_jump) {
@@ -123,8 +178,14 @@ void PlayerInner::on_wall(World* world, float dt)
     outer->velocity.x = step(outer->velocity.x, 0.0f, deaccel * dt);
 }
 
-void PlayerInner::do_ability1(World* world, float dt) { }
-void PlayerInner::do_ability2(World* world, float dt) { }
+void PlayerInner::do_ability1(World* world, float dt)
+{
+    TraceLog(TraceLogLevel::LOG_DEBUG, "Ability 1 fired");
+}
+void PlayerInner::do_ability2(World* world, float dt)
+{
+    TraceLog(TraceLogLevel::LOG_DEBUG, "Ability 2 fired");
+}
 
 void PlayerInner::update_jump_variables()
 {
@@ -132,54 +193,6 @@ void PlayerInner::update_jump_variables()
     jump_gravity = (-2.0f * jump_height) / (jump_time_to_peak * jump_time_to_peak);
     fall_gravity = (-2.0f * jump_height) / (jump_time_to_descent * jump_time_to_descent);
     variable_jump_gravity = ((jump_impulse * jump_impulse) / (2.0f * variable_jump_height)) * -1.0f;
-}
-
-void PlayerInner::update_velocity(World* world, float dt)
-{
-    //----------------------------------------------
-    // Update X Velocity
-
-    float target_velocity = outer->input_dir.x * max_velocity_x; // TEST
-    float speed;
-
-    // Do deacceleration if no player input
-    if (outer->input_dir.x == 0.0f) // TEST
-        speed = deaccel;
-
-    // Do Acceleration
-    else {
-        float target_sign = std::copysign(1.0f, target_velocity);
-        float current_sign = std::copysign(1.0f, outer->velocity.x); // TEST
-
-        // TODO - use accel speed when velocity == 0
-        speed = (target_sign == current_sign) ? accel : deaccel;
-    }
-
-    outer->velocity.x = step(outer->velocity.x, target_velocity, speed * dt); // TEST
-
-    //----------------------------------------------
-    // Wall jump
-
-    bool is_wall_jump = false;
-
-    if (!outer->grounded && outer->jump_pressed) { // TEST
-    }
-
-    //----------------------------------------------
-    // Update Y Velocity
-
-    // Start jumping
-    if (outer->jump_pressed && !is_wall_jump) {
-        do_jump(world, dt);
-    }
-
-    // If jumping, check end jump conditions
-    if (outer->jumping && (!outer->jump_held || outer->velocity.y > 0.1))
-        outer->jumping = false;
-
-    // Apply and clamp gravity
-    outer->velocity.y += get_gravity(world) * dt;
-    outer->velocity.y = std::fmin(outer->velocity.y, max_fall_speed);
 }
 
 float PlayerInner::get_gravity(World* world)
@@ -227,15 +240,9 @@ Player::Player(Vector2 new_pos)
 }
 
 Player::Player(Vector2 new_pos, PlayerType inner_type)
-    : Player(new_pos)
 {
-    switch (inner_type) {
-    case PlayerType::Avian:
-        inner = std::unique_ptr<PlayerInner>(new AvianPlayerInner(this));
-        break;
-    case PlayerType::Base:
-        break;
-    };
+    pos = new_pos;
+    set_inner(inner_type);
 }
 
 //====================================================================
@@ -251,12 +258,55 @@ void Player::fixed_update(World* world, float dt)
     // Do player character and ability stuff here
     // Check if key pressed since last fixed update (or buffer it like jump)
 
+    // Change character
+    // Check if button pressed, not on cooldown and we have stuff to change to
+    if (ability_3_pressed && switch_character_cooldown <= 0.0f && player_characters.size() > 1) {
+        TraceLog(TraceLogLevel::LOG_DEBUG, "Ability 3 fired - Change Character");
+
+        if (player_character_index == player_characters.size() - 1)
+            player_character_index = 0;
+        else
+            player_character_index += 1;
+
+        set_inner(player_characters[player_character_index]);
+
+        switch_character_cooldown = switch_character_cooldown_size;
+    }
+
+    if (ability_1_pressed) {
+        inner->do_ability1(world, dt);
+    }
+    if (ability_2_pressed) {
+        inner->do_ability2(world, dt);
+    }
+
     inner->fixed_update(world, dt);
 
     resolve_collisions(world, dt);
 
     if (!grounded)
         time_since_grounded += dt;
+
+    ability_1_pressed = false;
+    ability_2_pressed = false;
+    ability_3_pressed = false;
+    ability_4_pressed = false;
+
+    if (switch_character_cooldown > 0) {
+        switch_character_cooldown -= dt;
+    }
+}
+
+void Player::set_inner(PlayerType inner_type)
+{
+    switch (inner_type) {
+    case PlayerType::Avian:
+        inner = std::unique_ptr<PlayerInner>(new AvianPlayerInner(this));
+        break;
+    case PlayerType::Base:
+        inner = std::unique_ptr<PlayerInner>(new PlayerInner(this));
+        break;
+    };
 }
 
 void Player::player_input()
@@ -294,6 +344,18 @@ void Player::player_input()
         jump_pressed = true;
         jump_buffer = inner->jump_buffer_size; // TEST
     }
+
+    if (are_keys_pressed(key_ability_1))
+        ability_1_pressed = true;
+
+    if (are_keys_pressed(key_ability_2))
+        ability_2_pressed = true;
+
+    if (are_keys_pressed(key_ability_3))
+        ability_3_pressed = true;
+
+    if (are_keys_pressed(key_ability_4))
+        ability_4_pressed = true;
 }
 
 void Player::resolve_collisions(World* world, float dt)
@@ -436,13 +498,6 @@ void Player::render(World* world)
         world->log("GROUNDED");
     if (on_wall)
         world->log("ON WALL");
-
-    DrawRectangle(
-        pos.x - half_width,
-        pos.y - half_height,
-        half_width * 2,
-        half_height * 2,
-        player_color);
 
     inner->render(world);
 }

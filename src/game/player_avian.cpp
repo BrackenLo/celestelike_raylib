@@ -8,7 +8,7 @@ AvianPlayerInner::AvianPlayerInner(Player* outer)
     outer->half_width = 20;
     outer->half_height = 36;
 
-    outer->player_color = GREEN;
+    player_color = GREEN;
 
     accel = 2400.0f;
     deaccel = 2000.0f;

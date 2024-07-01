@@ -1,7 +1,6 @@
 #pragma once
 #include "../engine/entity.h"
 #include "../engine/save.h"
-#include "cereal/details/helpers.hpp"
 #include "raylib.h"
 #include <vector>
 
@@ -34,7 +33,6 @@ protected:
 
 protected:
     virtual void update_jump_variables();
-    void update_velocity(class World* world, float dt);
     float get_gravity(class World* world);
 
     inline PlayerType get_player_type() { return player_type; }
@@ -60,6 +58,8 @@ protected:
 
     float wall_slide_gravity;
     float wall_jump_impulse_x; // TODO - figure out a better algorithm (horizontal and vertical)
+
+    Color player_color;
 
 protected:
     // Managed player variables
@@ -94,19 +94,25 @@ public:
     virtual void render(class World* world) override;
 
 private:
+    void set_inner(PlayerType inner_type);
     void player_input();
     void resolve_collisions(World* world, float dt);
 
 protected:
     std::unique_ptr<class PlayerInner> inner;
-    std::vector<PlayerType> player_characters = { PlayerType::Base };
+    std::vector<PlayerType> player_characters = { PlayerType::Base, PlayerType::Avian };
+    int player_character_index = 0;
 
+    // Managed Player Variables
     Vector2 old_pos = { 0 };
 
-    // Active Player Variables
     Vector2 input_dir = { 0 };
     bool jump_held = false;
     bool jump_pressed = false;
+    bool ability_1_pressed = false;
+    bool ability_2_pressed = false;
+    bool ability_3_pressed = false;
+    bool ability_4_pressed = false;
 
     Vector2 velocity = { 0 };
 
@@ -119,6 +125,8 @@ protected:
     bool jumping = false;
     int remaining_jumps = 1;
 
+    float switch_character_cooldown = 0.0f;
+
 protected:
     // Config Player Variables
     std::vector<int> key_up = { KEY_I };
@@ -127,12 +135,12 @@ protected:
     std::vector<int> key_right = { KEY_L };
 
     std::vector<int> key_jump = { KEY_SPACE };
-    std::vector<int> key_ability_1 = { KEY_Z };
+    std::vector<int> key_ability_1 = { KEY_C };
     std::vector<int> key_ability_2 = { KEY_X };
-    std::vector<int> key_ability_3 = { KEY_C };
+    std::vector<int> key_ability_3 = { KEY_Z };
     std::vector<int> key_ability_4 = { KEY_V };
 
-    Color player_color;
+    float switch_character_cooldown_size = 0.4f;
 
 public:
     // IDebug functionality
