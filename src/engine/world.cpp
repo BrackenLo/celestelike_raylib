@@ -100,6 +100,7 @@ void World::clear_all()
 
 //====================================================================
 
+// Get collision information about all solids overlapping with provided entity
 std::vector<Collision> World::check_collision(CollisionEntity* to_check)
 {
     std::vector<Collision> collisions;
@@ -117,6 +118,7 @@ std::vector<Collision> World::check_collision(CollisionEntity* to_check)
     return collisions;
 }
 
+// Get all solids overlapping with provided entity
 std::vector<CollisionEntity*> World::check_overlap(CollisionEntity* to_check)
 {
     std::vector<CollisionEntity*> collisions;
@@ -222,37 +224,48 @@ bool World::load_level(const char* level_file_name)
         return false;
     }
 
+    int loaded_actors = 0;
+    int loaded_solids = 0;
+    int loaded_other = 0;
+
     for (std::unique_ptr<RawEntity>& raw : data.entities) {
         Entity* entity = raw->ToEntity().release();
 
         Actor* actor = dynamic_cast<Actor*>(entity);
         if (actor) {
-            TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Spawning Actor"));
+            // TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Spawning Actor"));
+            loaded_actors += 1;
             actors.push_back(actor);
             continue;
         }
 
         Solid* solid = dynamic_cast<Solid*>(entity);
         if (solid) {
-            TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Spawning Solid"));
+            // TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Spawning Solid"));
+            loaded_solids += 1;
             solids.push_back(solid);
             continue;
         }
 
         TraceLog(TraceLogLevel::LOG_WARNING, "World load level - Entity was neither actor or solid");
+        loaded_other += 1;
         delete entity;
     }
 
     for (Actor* actor : actors) {
-
         Player* player = dynamic_cast<Player*>(actor);
         if (player) {
             player_character = player;
             camera.set_follow_target(player_character, true);
+            break;
         }
     }
 
     TraceLog(TraceLogLevel::LOG_INFO, "--------World load level - Done!--------");
+    TraceLog(
+        TraceLogLevel::LOG_INFO,
+        "    Loaded %d actors, %d solids and found %d other",
+        loaded_actors, loaded_solids, loaded_other);
     return true;
 }
 

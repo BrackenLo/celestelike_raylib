@@ -22,5 +22,16 @@ AvianPlayerInner::AvianPlayerInner(Player* outer)
     variable_jump_height = -200.0f;
     total_jumps = 2;
 
+    glide_gravity = 300.0f;
+
     update_jump_variables();
+}
+
+float AvianPlayerInner::get_gravity(class World* world)
+{
+    if (!outer->on_wall && outer->velocity.y > 0.0f && outer->jump_held) {
+        return glide_gravity;
+    }
+
+    return PlayerInner::get_gravity(world);
 }

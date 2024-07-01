@@ -1,12 +1,14 @@
 #include "debug.h"
 
 #include "../defs.h"
+#include "../game/player.h"
 #include "raylib.h"
 #include "tools.h"
 #include "ui.h"
 #include "world.h"
 #include <algorithm>
 #include <cmath>
+#include <magic_enum.hpp>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -173,6 +175,9 @@ void Debugger::render_debug_menu(World* world)
     case DebugMenu::Physics:
         render_physics_menu(world);
         return;
+    case DebugMenu::Player:
+        render_player_menu(world);
+        return;
     case DebugMenu::Main:
         break;
     }
@@ -191,6 +196,11 @@ void Debugger::render_debug_menu(World* world)
 
     if (GuiButton({ menu_rect.x + 24, menu_rect.y + 168, 240, 48 }, "Physics")) {
         current_menu = DebugMenu::Physics;
+    }
+
+    if (GuiButton({ menu_rect.x + 24, menu_rect.y + 240, 240, 48 }, "Player")) {
+        build_player_menu(world);
+        current_menu = DebugMenu::Player;
     }
 }
 
@@ -397,6 +407,69 @@ void Debugger::render_physics_menu(World* world)
     // Freeze
     edit_rect.y = menu_rect.y + 192;
     GuiCheckBox({ menu_rect.x + 144, menu_rect.y + 192, 24, 24 }, NULL, &data->freeze_fixed_update);
+}
+
+void Debugger::render_player_menu(World* world)
+{
+    if (GuiWindowBox(menu_rect, "Player Menu")) {
+        current_menu = DebugMenu::Main;
+    }
+
+    if (GuiButton({ menu_rect.x + 24, menu_rect.y + 48, 120, 24 }, "Sync")) {
+        build_player_menu(world);
+    }
+
+    if (GuiButton({ menu_rect.x + 24, menu_rect.y + 96, 120, 24 }, "Apply")) {
+        // player_slot1.
+        Player* player = world->get_player();
+        // world->get_player()->player_character_index = 0;
+        player->player_character_index = 0;
+
+        player->player_characters.clear();
+
+        for (auto val : player_slots) {
+            PlayerType value = static_cast<PlayerType>(val);
+            player->player_characters.push_back(value);
+        }
+
+        player->set_inner(player->player_characters[0]);
+    }
+
+    if (player_slots.size() > 1 && GuiButton({ menu_rect.x + 192, menu_rect.y + 144, 24, 24 }, "-")) {
+        player_slots.pop_back();
+    }
+    if (player_slots.size() < 4 && GuiButton({ menu_rect.x + 240, menu_rect.y + 144, 24, 24 }, "+")) {
+        player_slots.push_back(0);
+    }
+
+    Rectangle combo_rect = { menu_rect.x + 24, menu_rect.y + 144, 144, 24 };
+
+    for (int& player_type : player_slots) {
+        GuiComboBox(combo_rect, player_options.c_str(), &player_type);
+        combo_rect.y += 48;
+    }
+}
+
+void Debugger::build_player_menu(World* world)
+{
+    TraceLog(TraceLogLevel::LOG_INFO, "Rebuilding player debug");
+
+    constexpr auto player_types = magic_enum::enum_names<PlayerType>();
+
+    player_options.clear();
+    for (auto type : player_types) {
+        player_options.append(";").append(type);
+    }
+    player_options.erase(0, 1);
+
+    TraceLog(TraceLogLevel::LOG_INFO, TextFormat("options: '%s'", player_options.c_str()));
+
+    player_slots.clear();
+
+    for (PlayerType val : world->get_player()->player_characters) {
+        int value = static_cast<int>(val);
+        player_slots.push_back(value);
+    }
 }
 
 //====================================================================

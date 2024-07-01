@@ -5,11 +5,14 @@
 #include <variant>
 #include <vector>
 
+enum class PlayerType;
+
 enum class DebugMenu {
     Main,
     LevelSelect,
     Inspector,
     Physics,
+    Player,
 };
 
 // TODO - add spacing decorative variant + other variants
@@ -36,16 +39,25 @@ private:
     friend class World;
 
 private:
+    // Logging
     void render_log(std::vector<std::string>* messages, int index);
 
+    // Debug menu
     void resize_debug_menu();
     void render_debug_menu(World* world);
+
     void render_level_menu(World* world);
     void build_level_menu(World* world);
+
     void render_inspector_menu(World* world);
     void build_inspector_menu(World* world);
+
     void render_physics_menu(World* world);
 
+    void render_player_menu(World* world);
+    void build_player_menu(World* world);
+
+    // Level stuff
     void destroy_tile(World* world);
 
     void update_level_editor(class World* world);
@@ -79,6 +91,10 @@ private:
     int entity_list_scroll_index = 0;
 
     std::vector<DebugProperty> entity_properties;
+
+    // Debug Menu - Player
+    std::string player_options;
+    std::vector<int> player_slots;
 
     //----------------------------------------------
     // Logging stuff

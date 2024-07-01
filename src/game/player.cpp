@@ -414,12 +414,16 @@ void Player::resolve_collisions(World* world, float dt)
 
         if (hit_left || hit_right) {
             // TODO - check squish
+            if (hit_left && hit_right) {
+                world->log("X SQUISH", 1);
+            } else {
 
-            world->log("X Collision", 1);
+                world->log("X Collision", 1);
 
-            on_wall = true;
+                on_wall = true;
 
-            pos.x += left_nudge + right_nudge;
+                pos.x += left_nudge + right_nudge;
+            }
         }
 
         //----------------------------------------------
@@ -452,12 +456,17 @@ void Player::resolve_collisions(World* world, float dt)
         if (hit_top || hit_bottom) {
             // TODO - check squish
 
-            if (hit_top)
-                grounded = true;
-            else
-                on_ceiling = true;
+            if (hit_top && hit_bottom) {
+                world->log("Y SQUISH", 1);
 
-            pos.y += up_nudge + down_nudge;
+            } else {
+                if (hit_top)
+                    grounded = true;
+                else
+                    on_ceiling = true;
+
+                pos.y += up_nudge + down_nudge;
+            }
         }
     }
 

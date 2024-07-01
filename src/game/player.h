@@ -33,7 +33,7 @@ protected:
 
 protected:
     virtual void update_jump_variables();
-    float get_gravity(class World* world);
+    virtual float get_gravity(class World* world);
 
     inline PlayerType get_player_type() { return player_type; }
 
@@ -84,6 +84,7 @@ class Player : public Actor, public IToRawData {
 public:
     friend class PlayerInner;
     friend class AvianPlayerInner;
+    friend class Debugger;
 
     Player();
     Player(Vector2 pos);
@@ -163,7 +164,6 @@ public:
 public:
     std::vector<PlayerType> player_characters;
     int player_character_index;
-    // PlayerType player_type;
 
 public:
     virtual std::unique_ptr<class Entity> ToEntity() override;
@@ -175,9 +175,7 @@ public:
         archive(
             cereal::base_class<RawEntity>(this),
             cereal::make_nvp("character_types", player_characters),
-            cereal::make_nvp("character_index", player_character_index)
-            // cereal::make_nvp("type", player_type)
-        );
+            cereal::make_nvp("character_index", player_character_index));
 
         // Version 2
         // ...

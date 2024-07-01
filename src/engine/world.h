@@ -20,7 +20,8 @@ public:
     void clear_all();
 
     inline std::vector<class Actor*>* get_actors() { return &actors; }
-    inline std::vector<class Solid*>* get_solids() { return &solids; };
+    inline std::vector<class Solid*>* get_solids() { return &solids; }
+    inline class Player* get_player() { return player_character; }
 
     std::vector<Collision> check_collision(class CollisionEntity* to_check);
     std::vector<CollisionEntity*> check_overlap(class CollisionEntity* to_check);
