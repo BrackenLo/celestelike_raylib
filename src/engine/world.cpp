@@ -170,16 +170,16 @@ bool World::save_level(const char* level_name)
         return false;
     cereal::JSONOutputArchive archive(file);
 
-    // Binary archive
+    // // Binary archive
     // std::string file_name;
     // file_name
     //     .append("level-")
     //     .append(level_name)
-    //     .append(".bin")
+    //     .append(".bin");
     // std::ofstream file(file_name, std::ios::binary);
     // cereal::PortableBinaryOutputArchive archive(file);
 
-    // XML archive
+    // // XML archive
     // std::string file_name;
     // file_name
     //     .append("level-")

@@ -39,10 +39,13 @@ protected:
     Vector2 input_dir = { 0 };
     bool jump_held = false;
     bool jump_pressed = false;
+
     bool ability_1_pressed = false;
+    bool ability_1_down = false;
     bool ability_2_pressed = false;
+    bool ability_2_down = false;
+
     bool ability_3_pressed = false;
-    bool ability_4_pressed = false;
 
     Vector2 velocity = { 0 };
 
@@ -51,9 +54,12 @@ protected:
     bool on_wall = false;
 
     float time_since_grounded = 0.0f;
+
     float jump_buffer = 0.0f;
-    bool jumping = false;
     int remaining_jumps = 1;
+
+    bool jumping = false;
+    float wall_jump_control_timer = 0.0f;
 
     float switch_character_cooldown = 0.0f;
 
@@ -68,7 +74,6 @@ protected:
     std::vector<int> key_ability_1 = { KEY_C };
     std::vector<int> key_ability_2 = { KEY_X };
     std::vector<int> key_ability_3 = { KEY_Z };
-    std::vector<int> key_ability_4 = { KEY_V };
 
     float switch_character_cooldown_size = 0.4f;
 

@@ -6,6 +6,7 @@
 #include "player.hpp"
 #include "raylib.h"
 #include "raymath.h"
+#include <algorithm>
 #include <cmath>
 
 //====================================================================
@@ -39,6 +40,7 @@ PlayerInner::PlayerInner(Player* outer)
 
     wall_slide_gravity = 300.0f;
     wall_jump_impulse_x = 500.0f;
+    wall_jump_control_timer_size = 0.6f;
 
     update_jump_variables();
 }
@@ -47,11 +49,8 @@ void PlayerInner::update(World* world)
 {
 }
 
-void PlayerInner::fixed_update(World* world, float dt)
+void PlayerInner::walk(World* world, float dt)
 {
-    //----------------------------------------------
-    // Update X Velocity
-
     float target_velocity = outer->input_dir.x * max_velocity_x; // TEST
     float speed;
 
@@ -68,23 +67,27 @@ void PlayerInner::fixed_update(World* world, float dt)
         speed = (target_sign == current_sign) ? accel : deaccel;
     }
 
-    outer->velocity.x = step(outer->velocity.x, target_velocity, speed * dt); // TEST
-
-    //----------------------------------------------
-    // Wall jump
-
-    bool is_wall_jump = false;
-
-    if (!outer->grounded && outer->jump_pressed) { // TEST
-        is_wall_jump = do_wall_jump(world, dt);
+    if (outer->wall_jump_control_timer > 0.0f) {
+        float progress = 1.0f - outer->wall_jump_control_timer / wall_jump_control_timer_size;
+        speed *= progress;
     }
 
-    //----------------------------------------------
-    // Update Y Velocity
+    // TODO - only clamp like this on floor?
+    outer->velocity.x = step(outer->velocity.x, target_velocity, speed * dt);
+}
 
-    // Start jumping
-    if (outer->jump_pressed && !is_wall_jump) {
-        do_jump(world, dt);
+void PlayerInner::fixed_update(World* world, float dt)
+{
+    walk(world, dt);
+
+    if (outer->jump_pressed) {
+        auto val = check_wall_jump(world, dt);
+
+        if (!outer->grounded && val.has_value())
+            do_wall_jump(world, dt, val.value());
+
+        else if (check_can_jump(world, dt))
+            do_jump(world, dt);
     }
 
     // If jumping, check end jump conditions
@@ -96,6 +99,10 @@ void PlayerInner::fixed_update(World* world, float dt)
         outer->velocity.y,
         max_fall_speed,
         get_gravity(world) * dt);
+
+    if (outer->ability_1_pressed) {
+        do_ability1(world, dt);
+    }
 }
 
 void PlayerInner::render(World* world)
@@ -105,7 +112,7 @@ void PlayerInner::render(World* world)
         player_color_1, player_color_2, player_color_2, player_color_1);
 }
 
-bool PlayerInner::do_jump(World* world, float dt)
+bool PlayerInner::check_can_jump(World* world, float dt)
 {
     // Check if has all jumps
     bool first_jump = outer->remaining_jumps == total_jumps;
@@ -119,19 +126,20 @@ bool PlayerInner::do_jump(World* world, float dt)
     // Check if has jumps and is on ground with first jump or it's not the first jump
     bool can_jump = outer->remaining_jumps > 0 && ((first_jump && has_ground) || !first_jump);
 
-    if (can_jump) {
-        outer->jump_pressed = false;
-        outer->jump_buffer = 0.0f;
-        outer->remaining_jumps -= 1;
-
-        outer->jumping = true;
-        outer->velocity.y = jump_impulse;
-        return true;
-    }
-    return false;
+    return can_jump;
 }
 
-bool PlayerInner::do_wall_jump(World* world, float dt)
+void PlayerInner::do_jump(World* world, float dt)
+{
+    outer->jump_pressed = false;
+    outer->jump_buffer = 0.0f;
+    outer->remaining_jumps -= 1;
+
+    outer->jumping = true;
+    outer->velocity.y = jump_impulse;
+}
+
+std::optional<int> PlayerInner::check_wall_jump(World* world, float dt)
 {
     CollisionEntity to_check = CollisionEntity(outer->pos, outer->half_width + 4, outer->half_height + 4); // TEST
     std::vector<Collision> collisions = world->check_collision(&to_check);
@@ -146,22 +154,24 @@ bool PlayerInner::do_wall_jump(World* world, float dt)
             right_collision = true;
     }
 
-    if (left_collision || right_collision) {
-        outer->jump_buffer = 0.0f;
+    if (left_collision || right_collision)
+        return std::optional(right_collision - left_collision);
 
-        float x_mul;
+    return std::nullopt;
+}
 
-        if (left_collision && right_collision)
-            x_mul = 0.;
-        else
-            x_mul = left_collision ? 1.0f : -1.0f;
+void PlayerInner::do_wall_jump(World* world, float dt, int direction)
+{
+    direction = std::clamp(direction, -1, 1);
+    float x_mul = static_cast<float>(direction);
 
-        outer->velocity.x = wall_jump_impulse_x * x_mul;
-        outer->velocity.y = jump_impulse;
-        outer->jumping = true;
-        return true;
-    }
-    return false;
+    Vector2 jump_direction = { 0.5f * x_mul, 0.5 };
+
+    outer->velocity = Vector2Scale(jump_direction, jump_impulse * 1.8);
+
+    outer->jump_buffer = 0.0f;
+    outer->jumping = true;
+    outer->wall_jump_control_timer = wall_jump_control_timer_size;
 }
 
 void PlayerInner::on_grounded(World* world, float dt)
@@ -195,6 +205,7 @@ void PlayerInner::update_jump_variables()
     jump_impulse = (2.0f * jump_height) / jump_time_to_peak;
     jump_gravity = (-2.0f * jump_height) / (jump_time_to_peak * jump_time_to_peak);
     fall_gravity = (-2.0f * jump_height) / (jump_time_to_descent * jump_time_to_descent);
+
     variable_jump_gravity = ((jump_impulse * jump_impulse) / (2.0f * variable_jump_height)) * -1.0f;
 }
 
@@ -297,7 +308,7 @@ void CelestePlayerInner::do_ability1(World* world, float dt)
     if (input.x == 0.0f && input.y == 0.0f)
         input.x = 1;
 
-    Vector2 dash_velocity = Vector2Scale(input, dash_power);
+    Vector2 dash_velocity = Vector2Scale(Vector2Normalize(input), dash_power);
 
     outer->velocity = dash_velocity;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../engine/debug.hpp"
+#include <optional>
 
 //====================================================================
 
@@ -23,8 +24,12 @@ protected:
     virtual void fixed_update(class World* world, float dt);
     virtual void render(class World* world);
 
-    virtual bool do_jump(class World* world, float dt);
-    virtual bool do_wall_jump(class World* world, float dt);
+    virtual void walk(class World* world, float dt);
+    virtual bool check_can_jump(class World*, float dt);
+    virtual void do_jump(class World* world, float dt);
+    virtual std::optional<int> check_wall_jump(class World*, float dt);
+    virtual void do_wall_jump(class World* world, float dt, int direction);
+
     virtual void on_grounded(class World* world, float dt);
     virtual void on_ceiling(class World* world, float dt);
     virtual void on_wall(class World* world, float dt);
@@ -59,6 +64,7 @@ protected:
 
     float wall_slide_gravity;
     float wall_jump_impulse_x; // TODO - figure out a better algorithm (horizontal and vertical)
+    float wall_jump_control_timer_size;
 
     Color player_color_1;
     Color player_color_2;
