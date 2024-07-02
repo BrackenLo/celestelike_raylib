@@ -2,6 +2,7 @@
 
 #include "../engine/tools.hpp"
 #include "../engine/world.hpp"
+#include "player_inner.hpp"
 #include "raymath.h"
 #include <cmath>
 #include <memory>
@@ -12,7 +13,11 @@
 Player::Player()
 {
     TraceLog(TraceLogLevel::LOG_INFO, "Creating player");
-    inner = std::unique_ptr<PlayerInner>(new PlayerInner(this));
+
+    player_characters = { PlayerType::Base, PlayerType::Avian };
+    player_character_index = 0;
+
+    set_inner(player_characters[player_character_index]);
 }
 
 Player::Player(Vector2 new_pos)
@@ -21,10 +26,12 @@ Player::Player(Vector2 new_pos)
     pos = new_pos;
 }
 
+// Doesn't call default constructor
 Player::Player(Vector2 new_pos, std::vector<PlayerType> characters, int index)
     : player_characters(characters)
     , player_character_index(index)
 {
+    TraceLog(TraceLogLevel::LOG_INFO, "Creating player");
     pos = new_pos;
     set_inner(characters[index]);
 }
@@ -84,11 +91,14 @@ void Player::fixed_update(World* world, float dt)
 void Player::set_inner(PlayerType inner_type)
 {
     switch (inner_type) {
+    case PlayerType::Base:
+        inner = std::unique_ptr<PlayerInner>(new PlayerInner(this));
+        break;
     case PlayerType::Avian:
         inner = std::unique_ptr<PlayerInner>(new AvianPlayerInner(this));
         break;
-    case PlayerType::Base:
-        inner = std::unique_ptr<PlayerInner>(new PlayerInner(this));
+    case PlayerType::Celeste:
+        inner = std::unique_ptr<PlayerInner>(new CelestePlayerInner(this));
         break;
     };
 }

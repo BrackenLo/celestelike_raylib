@@ -10,7 +10,7 @@ GameCamera::GameCamera()
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-    speed = 2; // TODO - Split into x and y components
+    speed = { 4.0f, 4.0f }; // TODO - Split into x and y components
     move_target = { 0 };
     follow_target = nullptr;
 
@@ -21,12 +21,12 @@ GameCamera::GameCamera()
 void GameCamera::update(World* world)
 {
     float delta = GetFrameTime();
-    float move_speed = speed * delta;
+    Vector2 move_speed = Vector2Scale(speed, delta);
 
-    if (follow_target != nullptr)
-        pos = Vector2Lerp(pos, follow_target->pos, move_speed);
-    else
-        pos = Vector2Lerp(pos, move_target, move_speed);
+    Vector2 target = follow_target != nullptr ? follow_target->pos : move_target;
+
+    pos.x = Lerp(pos.x, target.x, move_speed.x);
+    pos.y = Lerp(pos.y, target.y, move_speed.y);
 
     camera.target = pos;
     camera.zoom = Lerp(camera.zoom, zoom_target, zoom_speed * delta);

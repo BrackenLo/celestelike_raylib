@@ -14,7 +14,7 @@ public:
     void set_follow_target(Entity* target, bool snap = false);
 
 public:
-    float speed;
+    Vector2 speed;
     Vector2 move_target;
     Entity* follow_target;
 

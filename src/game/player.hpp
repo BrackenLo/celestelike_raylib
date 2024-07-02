@@ -11,6 +11,8 @@ class Player : public Actor, public IToRawData {
 public:
     friend class PlayerInner;
     friend class AvianPlayerInner;
+    friend class CelestePlayerInner;
+
     friend class Debugger;
 
     Player();

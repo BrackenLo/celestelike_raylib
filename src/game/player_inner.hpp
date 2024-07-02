@@ -7,6 +7,7 @@
 enum class PlayerType {
     Base,
     Avian,
+    Celeste,
 };
 
 //====================================================================
@@ -59,7 +60,8 @@ protected:
     float wall_slide_gravity;
     float wall_jump_impulse_x; // TODO - figure out a better algorithm (horizontal and vertical)
 
-    Color player_color;
+    Color player_color_1;
+    Color player_color_2;
 
 protected:
     // Managed player variables
@@ -88,6 +90,30 @@ protected:
 protected:
     float default_max_fall_speed;
     float glide_max_fall_speed;
+};
+
+//====================================================================
+
+class CelestePlayerInner : public PlayerInner {
+public:
+    CelestePlayerInner(Player* outer);
+
+protected:
+    void do_ability1(class World* world, float dt) override;
+    void do_ability2(class World* world, float dt) override;
+
+    virtual void on_grounded(class World* world, float dt) override;
+    virtual void fixed_update(class World* world, float dt) override;
+    virtual float get_gravity(class World* world) override;
+
+protected:
+    float dash_cooldown;
+    float dash_cooldown_size;
+    int dashes;
+    int dashes_count;
+    int dash_power;
+
+    float default_max_velocity_x;
 };
 
 //====================================================================

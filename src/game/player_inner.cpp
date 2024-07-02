@@ -4,6 +4,8 @@
 #include "../engine/tools.hpp"
 #include "../engine/world.hpp"
 #include "player.hpp"
+#include "raylib.h"
+#include "raymath.h"
 #include <cmath>
 
 //====================================================================
@@ -17,7 +19,8 @@ PlayerInner::PlayerInner(Player* outer)
     outer->half_width = 25;
     outer->half_height = 32;
 
-    player_color = RED;
+    player_color_1 = RED;
+    player_color_2 = ORANGE;
 
     accel = 2200.0f;
     deaccel = 2600.0f;
@@ -88,15 +91,18 @@ void PlayerInner::fixed_update(World* world, float dt)
     if (outer->jumping && (!outer->jump_held || outer->velocity.y > 0.1))
         outer->jumping = false;
 
-    // Apply and clamp gravity
-    outer->velocity.y = step(outer->velocity.y, max_fall_speed, get_gravity(world) * dt);
+    // Apply and step gravity towards max_fall_speed
+    outer->velocity.y = step(
+        outer->velocity.y,
+        max_fall_speed,
+        get_gravity(world) * dt);
 }
 
 void PlayerInner::render(World* world)
 {
     DrawRectangleGradientEx(
         outer->get_rect(),
-        player_color, ORANGE, ORANGE, player_color);
+        player_color_1, player_color_2, player_color_2, player_color_1);
 }
 
 bool PlayerInner::do_jump(World* world, float dt)
@@ -232,7 +238,7 @@ AvianPlayerInner::AvianPlayerInner(Player* outer)
     outer->half_width = 20;
     outer->half_height = 36;
 
-    player_color = GREEN;
+    player_color_1 = GREEN;
 
     accel = 2400.0f;
     deaccel = 2000.0f;
@@ -261,6 +267,78 @@ void AvianPlayerInner::update(World* world)
     } else {
         max_fall_speed = default_max_fall_speed;
     }
+}
+
+//====================================================================
+
+CelestePlayerInner::CelestePlayerInner(Player* outer)
+    : PlayerInner(outer)
+{
+    player_color_1 = RED;
+    player_color_2 = BLUE;
+
+    dash_cooldown = 0.0f;
+    dash_cooldown_size = 0.2f;
+
+    dashes = dashes_count = 1;
+
+    dash_power = 800;
+
+    default_max_velocity_x = max_velocity_x;
+}
+
+void CelestePlayerInner::do_ability1(World* world, float dt)
+{
+    if (dash_cooldown > 0.0f || dashes <= 0) {
+        return;
+    }
+
+    Vector2 input = outer->input_dir;
+    if (input.x == 0.0f && input.y == 0.0f)
+        input.x = 1;
+
+    Vector2 dash_velocity = Vector2Scale(input, dash_power);
+
+    outer->velocity = dash_velocity;
+
+    dash_cooldown = dash_cooldown_size;
+    dashes -= 1;
+
+    player_color_1 = BLUE;
+
+    max_velocity_x = dash_power;
+}
+
+void CelestePlayerInner::do_ability2(World* world, float dt)
+{
+}
+
+void CelestePlayerInner::on_grounded(World* world, float dt)
+{
+    PlayerInner::on_grounded(world, dt);
+
+    dashes = dashes_count;
+    player_color_1 = RED;
+}
+
+void CelestePlayerInner::fixed_update(World* world, float dt)
+{
+    PlayerInner::fixed_update(world, dt);
+
+    if (dash_cooldown > 0.0f) {
+        dash_cooldown -= dt;
+        if (dash_cooldown <= 0.0f) {
+            max_velocity_x = default_max_velocity_x;
+        }
+    }
+}
+
+float CelestePlayerInner::get_gravity(World* world)
+{
+    if (dash_cooldown > 0.0f)
+        return 0.0f;
+
+    return PlayerInner::get_gravity(world);
 }
 
 //====================================================================
