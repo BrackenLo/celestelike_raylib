@@ -1,4 +1,4 @@
-#include "world.h"
+#include "world.hpp"
 
 #include "cereal/details/helpers.hpp"
 #include "raylib.h"
@@ -6,10 +6,10 @@
 #include <cstring>
 #include <string>
 
-#include "../game/player.h"
-#include "entity.h"
+#include "../game/player.hpp"
+#include "entity.hpp"
 
-#include "save.h"
+#include "save.hpp"
 #include <cereal/archives/json.hpp>
 #include <cereal/archives/portable_binary.hpp>
 #include <cereal/archives/xml.hpp>

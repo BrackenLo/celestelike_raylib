@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entity.h"
+#include "entity.hpp"
 #include "raylib.h"
 
 class GameCamera : public Entity, public IDebug {

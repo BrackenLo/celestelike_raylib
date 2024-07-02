@@ -1,11 +1,11 @@
-#include "debug.h"
+#include "debug.hpp"
 
-#include "../defs.h"
-#include "../game/player.h"
+#include "../defs.hpp"
+#include "../game/player.hpp"
 #include "raylib.h"
-#include "tools.h"
-#include "ui.h"
-#include "world.h"
+#include "tools.hpp"
+#include "ui.hpp"
+#include "world.hpp"
 #include <algorithm>
 #include <cmath>
 #include <magic_enum.hpp>

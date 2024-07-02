@@ -1,8 +1,8 @@
 #pragma once
 
-#include "camera.h"
-#include "debug.h"
-#include "physics.h"
+#include "camera.hpp"
+#include "debug.hpp"
+#include "physics.hpp"
 #include <vector>
 
 class World {

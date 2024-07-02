@@ -1,8 +1,8 @@
-#include "camera.h"
+#include "camera.hpp"
 
 #include "raylib.h"
 #include "raymath.h"
-#include "world.h"
+#include "world.hpp"
 
 GameCamera::GameCamera()
 {

@@ -1,9 +1,9 @@
-#include "player_inner.h"
+#include "player_inner.hpp"
 
-#include "../engine/physics.h"
-#include "../engine/tools.h"
-#include "../engine/world.h"
-#include "player.h"
+#include "../engine/physics.hpp"
+#include "../engine/tools.hpp"
+#include "../engine/world.hpp"
+#include "player.hpp"
 #include <cmath>
 
 //====================================================================

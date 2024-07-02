@@ -1,6 +1,6 @@
-#include "ui.h"
+#include "ui.hpp"
 
-#include "debug.h"
+#include "debug.hpp"
 #include "raygui.h"
 #include "raylib.h"
 #include "raymath.h"

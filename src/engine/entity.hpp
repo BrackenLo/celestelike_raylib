@@ -1,9 +1,9 @@
 #pragma once
 
 #include "cereal/cereal.hpp"
-#include "debug.h"
+#include "debug.hpp"
 #include "raylib.h"
-#include "save.h"
+#include "save.hpp"
 
 //====================================================================
 // Base entity class

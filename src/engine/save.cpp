@@ -1,7 +1,7 @@
-#include "save.h"
+#include "save.hpp"
 
-#include "entity.h"
-#include "world.h"
+#include "entity.hpp"
+#include "world.hpp"
 
 void SaveData::ToRaw(Entity* entity)
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../engine/debug.h"
+#include "../engine/debug.hpp"
 
 //====================================================================
 

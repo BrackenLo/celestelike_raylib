@@ -1,7 +1,7 @@
-#include "player.h"
+#include "player.hpp"
 
-#include "../engine/tools.h"
-#include "../engine/world.h"
+#include "../engine/tools.hpp"
+#include "../engine/world.hpp"
 #include "raymath.h"
 #include <cmath>
 #include <memory>

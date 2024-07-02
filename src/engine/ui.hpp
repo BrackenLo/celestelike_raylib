@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debug.h"
+#include "debug.hpp"
 #include "raygui.h"
 #include <vector>
 

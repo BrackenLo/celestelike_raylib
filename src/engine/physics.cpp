@@ -1,6 +1,6 @@
-#include "physics.h"
+#include "physics.hpp"
 
-#include "entity.h"
+#include "entity.hpp"
 #include <cmath>
 #include <cstdlib>
 
