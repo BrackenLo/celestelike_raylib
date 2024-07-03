@@ -101,6 +101,9 @@ void Player::set_inner(PlayerType inner_type)
     case PlayerType::Base:
         inner = std::unique_ptr<PlayerInner>(new PlayerInner(this));
         break;
+    case PlayerType::Debug:
+        inner = std::unique_ptr<PlayerInner>(new DebugPlayerInner(this));
+        break;
     case PlayerType::Avian:
         inner = std::unique_ptr<PlayerInner>(new AvianPlayerInner(this));
         break;

@@ -98,6 +98,14 @@ void World::clear_all()
     player_character = nullptr;
 }
 
+void World::clear_level()
+{
+    for (auto entity : solids) {
+        delete entity;
+    }
+    solids.clear();
+}
+
 //====================================================================
 
 // Get collision information about all solids overlapping with provided entity

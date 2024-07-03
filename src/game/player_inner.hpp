@@ -7,6 +7,7 @@
 
 enum class PlayerType {
     Base,
+    Debug,
     Avian,
     Celeste,
 };
@@ -86,12 +87,24 @@ public:
 
 //====================================================================
 
+class DebugPlayerInner : public PlayerInner {
+public:
+    DebugPlayerInner(Player* outer);
+
+protected:
+    void fixed_update(World* world, float dt) override;
+    void walk(World* world, float dt) override;
+    void render(World* world) override;
+};
+
+//====================================================================
+
 class AvianPlayerInner : public PlayerInner {
 public:
     AvianPlayerInner(Player* outer);
 
 protected:
-    virtual void update(World* world) override;
+    void update(World* world) override;
 
 protected:
     float default_max_fall_speed;
@@ -108,9 +121,9 @@ protected:
     void do_ability1(class World* world, float dt) override;
     void do_ability2(class World* world, float dt) override;
 
-    virtual void on_grounded(class World* world, float dt) override;
-    virtual void fixed_update(class World* world, float dt) override;
-    virtual float get_gravity(class World* world) override;
+    void on_grounded(class World* world, float dt) override;
+    void fixed_update(class World* world, float dt) override;
+    float get_gravity(class World* world) override;
 
 protected:
     float dash_cooldown;

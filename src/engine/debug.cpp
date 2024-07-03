@@ -239,11 +239,14 @@ void Debugger::render_level_menu(World* world)
             std::remove_if(name.begin(), name.end(), ::isspace),
             name.end());
 
-        if (name.empty())
-            return;
+        if (!name.empty()) {
+            world->save_level(name.c_str());
+            build_level_menu(world);
+        }
+    }
 
-        world->save_level(name.c_str());
-        build_level_menu(world);
+    if (GuiButton({ menu_rect.x + 48, menu_rect.y + 360, 192, 32 }, "Clear Level")) {
+        world->clear_level();
     }
 }
 
@@ -555,6 +558,9 @@ void Debugger::render_level_editor(World* world)
         int start_y = origin_y + TILE_HEIGHT * y;
         DrawLine(origin_x, start_y, end_x, start_y, BLACK);
     }
+
+    DrawLineEx({ -999, 0 }, { 999, 0 }, 3, RED);
+    DrawLineEx({ 0, -999 }, { 0, 999 }, 3, RED);
 }
 
 //====================================================================

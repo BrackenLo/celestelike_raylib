@@ -241,6 +241,33 @@ void PlayerInner::get_properties(std::vector<DebugProperty>* properties)
 
 //====================================================================
 
+DebugPlayerInner::DebugPlayerInner(Player* outer)
+    : PlayerInner(outer)
+{
+    outer->half_width = 0;
+    outer->half_height = 0;
+
+    accel = 1000.0f;
+}
+
+void DebugPlayerInner::fixed_update(World* world, float dt)
+{
+    walk(world, dt);
+}
+
+void DebugPlayerInner::walk(World* world, float dt)
+{
+    Vector2 input_dir = Vector2Normalize(outer->input_dir);
+    outer->velocity = Vector2Scale(input_dir, accel);
+}
+
+void DebugPlayerInner::render(World* world)
+{
+    DrawRectangle(outer->pos.x - 16, outer->pos.y - 16, 32, 32, BLUE);
+}
+
+//====================================================================
+
 AvianPlayerInner::AvianPlayerInner(Player* outer)
     : PlayerInner(outer)
 {

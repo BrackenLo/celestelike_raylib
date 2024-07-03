@@ -18,6 +18,7 @@ public:
     bool destroy_actor(class Actor* actor);
     bool destroy_solid(class Solid* solid);
     void clear_all();
+    void clear_level();
 
     inline std::vector<class Actor*>* get_actors() { return &actors; }
     inline std::vector<class Solid*>* get_solids() { return &solids; }
