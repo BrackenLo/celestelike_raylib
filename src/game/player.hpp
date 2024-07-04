@@ -1,7 +1,7 @@
 #pragma once
 #include "../engine/entity.hpp"
 #include "../engine/save.hpp"
-#include "player_inner.hpp"
+#include "player_inner_base.hpp"
 #include "raylib.h"
 #include <vector>
 
