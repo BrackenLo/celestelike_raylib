@@ -45,9 +45,46 @@ PlayerInner::PlayerInner(Player* outer)
     update_jump_variables();
 }
 
+//====================================================================
+
 void PlayerInner::update(World* world)
 {
 }
+
+void PlayerInner::fixed_update(World* world, float dt)
+{
+    walk(world, dt);
+
+    if (outer->jump_pressed) {
+        auto val = check_wall_jump(world, dt);
+
+        if (!outer->grounded && val.has_value())
+            do_wall_jump(world, dt, val.value());
+
+        else if (check_can_jump(world, dt))
+            do_jump(world, dt);
+    }
+
+    // If jumping, check end jump conditions
+    if (outer->jumping && (!outer->jump_held || outer->velocity.y > 0.1))
+        outer->jumping = false;
+
+    // Apply and step gravity towards max_fall_speed
+    outer->velocity.y = step(outer->velocity.y, max_fall_speed, get_gravity(world) * dt);
+
+    if (outer->ability_1_pressed) {
+        do_ability1(world, dt);
+    }
+}
+
+void PlayerInner::render(World* world)
+{
+    DrawRectangleGradientEx(
+        outer->get_rect(),
+        player_color_1, player_color_2, player_color_2, player_color_1);
+}
+
+//====================================================================
 
 void PlayerInner::walk(World* world, float dt)
 {
@@ -74,42 +111,6 @@ void PlayerInner::walk(World* world, float dt)
 
     // TODO - only clamp like this on floor?
     outer->velocity.x = step(outer->velocity.x, target_velocity, speed * dt);
-}
-
-void PlayerInner::fixed_update(World* world, float dt)
-{
-    walk(world, dt);
-
-    if (outer->jump_pressed) {
-        auto val = check_wall_jump(world, dt);
-
-        if (!outer->grounded && val.has_value())
-            do_wall_jump(world, dt, val.value());
-
-        else if (check_can_jump(world, dt))
-            do_jump(world, dt);
-    }
-
-    // If jumping, check end jump conditions
-    if (outer->jumping && (!outer->jump_held || outer->velocity.y > 0.1))
-        outer->jumping = false;
-
-    // Apply and step gravity towards max_fall_speed
-    outer->velocity.y = step(
-        outer->velocity.y,
-        max_fall_speed,
-        get_gravity(world) * dt);
-
-    if (outer->ability_1_pressed) {
-        do_ability1(world, dt);
-    }
-}
-
-void PlayerInner::render(World* world)
-{
-    DrawRectangleGradientEx(
-        outer->get_rect(),
-        player_color_1, player_color_2, player_color_2, player_color_1);
 }
 
 bool PlayerInner::check_can_jump(World* world, float dt)
