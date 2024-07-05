@@ -15,3 +15,8 @@ public:
     void init(entt::registry& reg) override;
     void run(entt::registry& reg) override;
 };
+
+class PhysicsSystem final : public System {
+public:
+    void run(entt::registry& reg) override;
+};

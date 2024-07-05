@@ -1,5 +1,6 @@
 #pragma once
 
+#include "player_systems.hpp"
 #include "scene.hpp"
 #include "system.hpp"
 
@@ -13,6 +14,8 @@ public:
 
 private:
     RenderSystem render_system;
+    PlayerSystem player_system;
+    PhysicsSystem physics_system;
 };
 
 }

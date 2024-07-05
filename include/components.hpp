@@ -9,17 +9,24 @@ struct Pos {
     int y;
 };
 
-struct Size {
-    int half_width;
-    int half_height;
-};
-
 struct Velocity {
     int x;
     int y;
 };
 
-struct Tile { };
+struct WalkSpeed {
+    int accel;
+    int deaccel;
+
+    int max_walk_speed;
+};
+
+struct CollisionBounds {
+    int half_width;
+    int half_height;
+};
+
+struct Solid { };
 struct Actor { };
 struct Player { };
 
@@ -29,6 +36,8 @@ struct Render {
 
 struct Sprite {
     Color color;
+    int half_width;
+    int half_height;
 };
 
 struct GameCamera {
