@@ -3,6 +3,8 @@
 #include "camera.hpp"
 #include "debug.hpp"
 #include "physics.hpp"
+#include "scene.hpp"
+
 #include <vector>
 
 class World {
@@ -37,10 +39,9 @@ public:
     bool load_level(const char* level_file_name);
 
 public:
-    Color clear_color;
     GameCamera camera;
 
-protected:
+private:
     void init();
     void update();
     void fixed_update(float dt);
@@ -58,4 +59,8 @@ private:
 private:
     PhysicsData physics_data;
     Debugger debug;
+
+private:
+    // ECS Overhaul
+    std::unique_ptr<Scene> scene;
 };

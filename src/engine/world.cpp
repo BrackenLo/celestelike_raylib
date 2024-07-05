@@ -1,6 +1,7 @@
 #include "world.hpp"
 
 #include "cereal/details/helpers.hpp"
+#include "level_scene.hpp"
 #include "raylib.h"
 #include <algorithm>
 #include <cstring>
@@ -17,11 +18,7 @@
 
 #include "raygui.h"
 
-World::World()
-{
-    clear_color = RAYWHITE;
-    // clear_color = Color(48, 41, 40);
-}
+World::World() { }
 
 World::~World()
 {
@@ -283,60 +280,66 @@ void World::init()
 {
     TraceLog(TraceLogLevel::LOG_INFO, "Initializing world!");
 
-    camera.reset();
+    scene = std::unique_ptr<Scene>(new celestelike::LevelScene);
 
-    // Try load default level or spawn default
-    if (!load_level("level-default.json")) {
-        add_solid(new Solid({ 0, 100 }, 1000.0f, 25.0f)); // Floor
+    scene->init();
 
-        Player* player = new Player({ 0, -100.0f });
-        add_actor(player);
-        camera.follow_target = player;
-    }
+    // camera.reset();
+
+    // // Try load default level or spawn default
+    // if (!load_level("level-default.json")) {
+    //     add_solid(new Solid({ 0, 100 }, 1000.0f, 25.0f)); // Floor
+
+    //     Player* player = new Player({ 0, -100.0f });
+    //     add_actor(player);
+    //     camera.follow_target = player;
+    // }
 }
 
 void World::update()
 {
-    for (Solid* solid : solids)
-        solid->update(this);
+    scene->update();
 
-    for (Actor* actor : actors)
-        actor->update(this);
+    // for (Solid* solid : solids)
+    //     solid->update(this);
 
-    camera.update(this);
+    // for (Actor* actor : actors)
+    //     actor->update(this);
 
-    debug.update(this);
+    // camera.update(this);
+
+    // debug.update(this);
 }
 
 void World::fixed_update(float dt)
 {
-    for (Solid* solid : solids)
-        solid->fixed_update(this, dt);
+    // for (Solid* solid : solids)
+    //     solid->fixed_update(this, dt);
 
-    for (Actor* actor : actors)
-        actor->fixed_update(this, dt);
+    // for (Actor* actor : actors)
+    //     actor->fixed_update(this, dt);
 }
 
 void World::render()
 {
-    BeginDrawing();
-    ClearBackground(clear_color);
+    // BeginDrawing();
+    // ClearBackground(clear_color);
 
-    BeginMode2D(camera.get_camera());
-    render_2d_inner();
-    debug.render_2d(this);
-    EndMode2D();
+    // BeginMode2D(camera.get_camera());
+    // render_2d_inner();
+    // debug.render_2d(this);
+    // EndMode2D();
 
-    debug.render(this);
+    // debug.render(this);
 
-    EndDrawing();
+    // EndDrawing();
 }
 
 void World::render_2d_inner()
 {
-    for (Solid* solid : solids)
-        solid->render(this);
+    // for (Solid* solid : solids)
+    //     solid->render(this);
 
-    for (Actor* actor : actors)
-        actor->render(this);
+    // for (Actor* actor : actors)
+    //     actor->render(this);
 }
