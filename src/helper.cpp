@@ -29,17 +29,17 @@ namespace render {
 }
 
 namespace physics {
-    bool check_collision(const Pos pos1, const CollisionBounds bounds1, const Pos pos2, const CollisionBounds bounds2)
+    bool check_collision(const Pos pos1, const Bounds bounds1, const Pos pos2, const Bounds bounds2)
     {
-        const int e1_x1 = pos1.x - bounds1.bounds.half_width;
-        const int e1_x2 = pos1.x + bounds1.bounds.half_width;
-        const int e1_y1 = pos1.y - bounds1.bounds.half_height;
-        const int e1_y2 = pos1.y + bounds1.bounds.half_height;
+        const int e1_x1 = pos1.x - bounds1.half_width;
+        const int e1_x2 = pos1.x + bounds1.half_width;
+        const int e1_y1 = pos1.y - bounds1.half_height;
+        const int e1_y2 = pos1.y + bounds1.half_height;
 
-        const int e2_x1 = pos2.x - bounds2.bounds.half_width;
-        const int e2_x2 = pos2.x + bounds2.bounds.half_width;
-        const int e2_y1 = pos2.y - bounds2.bounds.half_height;
-        const int e2_y2 = pos2.y + bounds2.bounds.half_height;
+        const int e2_x1 = pos2.x - bounds2.half_width;
+        const int e2_x2 = pos2.x + bounds2.half_width;
+        const int e2_y1 = pos2.y - bounds2.half_height;
+        const int e2_y2 = pos2.y + bounds2.half_height;
 
         return (e1_x1 < e2_x2 && e1_x2 > e2_x1 && e1_y1 < e2_y2 && e1_y2 > e2_y1);
     }

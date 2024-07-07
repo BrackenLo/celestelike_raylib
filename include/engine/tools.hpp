@@ -5,6 +5,8 @@
 #include <vector>
 
 float step(float val, float target, float step);
+int istep(int val, int target, int step);
+
 int round_to(int num, int multiple);
 
 std::string int_to_str(int val, int len);

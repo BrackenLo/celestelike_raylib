@@ -141,6 +141,7 @@ void update::pos_lerp(entt::registry& reg, float dt)
     }
 }
 
+// Update all player inputs buttons
 void player::update_input(entt::registry& reg, float dt)
 {
     PlayerInput& input = reg.ctx().get<PlayerInput>();
@@ -164,7 +165,79 @@ void player::update_input(entt::registry& reg, float dt)
     input.ability_2_down = are_keys_down(input.key_ability_2);
 }
 
-void player::update_velocity(entt::registry& reg, float dt)
+void player::check_collisions(entt::registry& reg, float dt)
+{
+    auto v_player = reg.view<Player, Pos, CollisionBounds>();
+    auto v_solid = reg.view<Solid, Pos, CollisionBounds>();
+
+    auto v_on_ground = reg.view<OnGround>();
+    auto v_on_ceiling = reg.view<OnCeiling>();
+
+    for (entt::entity player : v_player) {
+        bool ground_hit = false;
+        bool ceiling_hit = false;
+
+        const Pos& player_pos = v_player.get<Pos>(player);
+        const Bounds& player_bounds = v_player.get<CollisionBounds>(player);
+
+        const Pos player_ceiling_pos = { player_pos.x, player_pos.y - 2 };
+
+        for (entt::entity solid : v_solid) {
+            const Pos& solid_pos = v_solid.get<Pos>(solid);
+            const Bounds& solid_bounds = v_solid.get<CollisionBounds>(solid);
+
+            if (physics::check_collision(player_ceiling_pos, player_bounds, solid_pos, solid_bounds)) {
+                ceiling_hit = true;
+                break;
+            }
+        }
+
+        const Pos player_ground_pos = { player_pos.x, player_pos.y + 2 };
+
+        for (entt::entity solid : v_solid) {
+            const Pos& solid_pos = v_solid.get<Pos>(solid);
+            const Bounds& solid_bounds = v_solid.get<CollisionBounds>(solid);
+
+            if (physics::check_collision(player_ground_pos, player_bounds, solid_pos, solid_bounds)) {
+                ground_hit = true;
+                break;
+            }
+        }
+
+        if (ground_hit) {
+            if (v_on_ground.contains(player)) {
+                OnGround& on_ground = v_on_ground.get<OnGround>(player);
+                on_ground.just_started = false;
+
+            } else {
+                reg.emplace<OnGround>(player, true);
+                trace("Hit Ground");
+            }
+        } else {
+            if (v_on_ground.contains(player)) {
+                reg.erase<OnGround>(player);
+            }
+        }
+
+        if (ceiling_hit) {
+            if (v_on_ceiling.contains(player)) {
+                OnCeiling& on_ceiling = v_on_ceiling.get<OnCeiling>(player);
+                on_ceiling.just_started = false;
+
+            } else {
+                reg.emplace<OnCeiling>(player, true);
+                trace("Hit Ceiling");
+            }
+        } else {
+            if (v_on_ceiling.contains(player)) {
+                reg.erase<OnCeiling>(player);
+            }
+        }
+    }
+}
+
+// Apply player horizontal velocity
+void player::handle_walk(entt::registry& reg, float dt)
 {
     const PlayerInput& input = reg.ctx().get<PlayerInput>();
     auto v_players = reg.view<Player, Pos, Velocity, WalkSpeed>();
@@ -186,8 +259,55 @@ void player::update_velocity(entt::registry& reg, float dt)
             speed = target_sign == current_sign ? walk_speed.accel : walk_speed.deaccel;
         }
 
-        velocity.x = step(velocity.x, target_velocity, speed * dt);
+        velocity.x = istep(velocity.x, target_velocity, speed * dt);
     }
+}
+
+void player::handle_jump(entt::registry& reg, float dt)
+{
+    PlayerInput& input = reg.ctx().get<PlayerInput>();
+
+    auto v_player = reg.view<Player, Velocity, Jump>();
+    auto v_on_ground = reg.view<OnGround>();
+
+    for (entt::entity entity : v_player) {
+        if (input.jump_pressed && v_on_ground.contains(entity)) {
+
+            Velocity& velocity = v_player.get<Velocity>(entity);
+            const Jump& jump = v_player.get<Jump>(entity);
+
+            velocity.y = jump.impulse;
+        }
+    }
+}
+
+void player::handle_gravity(entt::registry& reg, float dt)
+{
+    auto v_player = reg.view<Player, Velocity, Gravity>();
+    auto v_grounded = reg.view<OnGround>();
+
+    for (entt::entity player : v_player) {
+        Velocity& velocity = v_player.get<Velocity>(player);
+        const Gravity& gravity = v_player.get<Gravity>(player);
+
+        if (v_grounded.contains(player) && velocity.y >= 0.0f) {
+            velocity.y = 100; // TODO | TEST - Grounding force
+
+        } else {
+            // TODO - Variable jump height
+            velocity.y = istep(velocity.y, gravity.max_fall_speed, gravity.fall_speed * dt);
+        }
+    }
+}
+
+void player::reset_values(entt::registry& reg, float dt)
+{
+    PlayerInput& input = reg.ctx().get<PlayerInput>();
+
+    input.jump_pressed = false;
+    input.ability_1_pressed = false;
+    input.ability_2_pressed = false;
+    input.ability_3_pressed = false;
 }
 
 void camera::camera_follow(entt::registry& reg, float dt)

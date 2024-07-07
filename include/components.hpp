@@ -30,11 +30,28 @@ struct WalkSpeed {
     int max_walk_speed;
 };
 
+struct Jump {
+    int impulse;
+    bool ended_early;
+};
+
+struct Gravity {
+    int fall_speed;
+    int max_fall_speed;
+};
+
 struct CollisionBounds {
     Bounds bounds;
 
     operator Bounds&() { return bounds; }
     operator const Bounds&() const { return bounds; }
+};
+
+struct OnGround {
+    bool just_started = false;
+};
+struct OnCeiling {
+    bool just_started = false;
 };
 
 struct Solid { };
@@ -51,9 +68,9 @@ struct Sprite {
 };
 
 struct PosLerp {
-    Pos target = { 0, 0 };
-    float speed_x = 4.0f;
-    float speed_y = 4.0f;
+    Pos target;
+    float speed_x;
+    float speed_y;
 };
 
 struct GameCamera {

@@ -10,6 +10,14 @@ float step(float val, float target, float step)
         return std::fmin((val + step), target);
 }
 
+int istep(int val, int target, int step)
+{
+    if (std::signbit(target - val))
+        return std::max((val - step), target);
+    else
+        return std::min((val + step), target);
+}
+
 int round_to(int num, int multiple)
 {
     // TODO - find more optimised solution? this one rounds up by default
