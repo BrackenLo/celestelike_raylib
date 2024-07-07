@@ -4,6 +4,15 @@
 
 namespace celestelike {
 
+//====================================================================
+
+struct Bounds {
+    int half_width;
+    int half_height;
+};
+
+//====================================================================
+
 struct Pos {
     int x;
     int y;
@@ -22,8 +31,10 @@ struct WalkSpeed {
 };
 
 struct CollisionBounds {
-    int half_width;
-    int half_height;
+    Bounds bounds;
+
+    operator Bounds&() { return bounds; }
+    operator const Bounds&() const { return bounds; }
 };
 
 struct Solid { };
@@ -36,8 +47,13 @@ struct Render {
 
 struct Sprite {
     Color color;
-    int half_width;
-    int half_height;
+    Bounds size;
+};
+
+struct PosLerp {
+    Pos target = { 0, 0 };
+    float speed_x = 4.0f;
+    float speed_y = 4.0f;
 };
 
 struct GameCamera {
@@ -50,7 +66,10 @@ struct GameCamera {
         camera.rotation = 0;
         camera.zoom = 1;
     }
-    operator const Camera2D&() { return camera; }
+    operator Camera2D&() { return camera; }
+    operator const Camera2D&() const { return camera; }
 };
+
+struct CameraTarget { };
 
 }

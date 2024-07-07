@@ -27,6 +27,8 @@ entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc)
     reg.emplace<Render>(entity, true);
     reg.emplace<Sprite>(entity, RED, 32, 64);
 
+    reg.emplace<CameraTarget>(entity);
+
     return entity;
 }
 
@@ -37,6 +39,7 @@ entt::entity spawn_camera(entt::registry& reg)
     entt::entity entity = reg.create();
 
     reg.emplace<Pos>(entity, 0, 0);
+    reg.emplace<PosLerp>(entity, 0, 0, 1.f, 1.f);
     reg.emplace<GameCamera>(entity);
 
     return entity;

@@ -1,6 +1,9 @@
 #include "level_scene.hpp"
 
 #include "factory.hpp"
+#include "player_resources.hpp"
+#include "resources.hpp"
+#include "systems.hpp"
 #include "tools.hpp"
 
 namespace celestelike {
@@ -9,8 +12,8 @@ void LevelScene::init()
 {
     trace("init level");
 
-    render_system.init(reg);
-    player_system.init(reg);
+    reg.ctx().emplace<ClearColor>(ClearColor { RAYWHITE });
+    reg.ctx().emplace<PlayerInput>();
 
     spawn_player(reg);
     spawn_camera(reg);
@@ -20,9 +23,19 @@ void LevelScene::init()
 
 void LevelScene::update()
 {
-    render_system.run(reg);
-    player_system.run(reg);
-    physics_system.run(reg);
+    float dt = 1.0f / 60.0f;
+
+    render::render(reg, dt);
+
+    player::update_input(reg, dt);
+    player::update_velocity(reg, dt);
+
+    camera::camera_follow(reg, dt);
+    camera::camera_update(reg, dt);
+
+    update::pos_lerp(reg, dt);
+
+    physics::apply_velocity_collision(reg, dt);
 }
 
 }
