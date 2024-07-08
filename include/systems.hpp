@@ -4,8 +4,6 @@
 
 namespace celestelike {
 
-typedef void (*GameSystem)(entt::registry& reg, float dt);
-
 namespace render {
     void render(entt::registry& reg, float dt);
 }

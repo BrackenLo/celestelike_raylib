@@ -1,6 +1,5 @@
 #include "world.hpp"
 
-#include "level_scene.hpp"
 #include "raylib.h"
 #include <algorithm>
 #include <cstring>
@@ -35,17 +34,7 @@ int World::run()
     init();
 
     while (!WindowShouldClose()) {
-        update();
-
-        physics_data.accumulator += GetFrameTime() * !physics_data.freeze_fixed_update;
-
-        if (physics_data.accumulator >= physics_data.timestep) {
-            fixed_update(physics_data.timestep);
-            physics_data.accumulator -= physics_data.timestep;
-            physics_data.elapsed += physics_data.timestep;
-        }
-
-        render();
+        scene.update();
     }
 
     TraceLog(TraceLogLevel::LOG_INFO, "Closing program");
@@ -237,66 +226,11 @@ void World::init()
 {
     TraceLog(TraceLogLevel::LOG_INFO, "Initializing world!");
 
-    scene = std::unique_ptr<Scene>(new celestelike::LevelScene);
-
-    scene->init();
-
-    // camera.reset();
-
-    // // Try load default level or spawn default
-    // if (!load_level("level-default.json")) {
-    //     add_solid(new Solid({ 0, 100 }, 1000.0f, 25.0f)); // Floor
-
-    //     Player* player = new Player({ 0, -100.0f });
-    //     add_actor(player);
-    //     camera.follow_target = player;
-    // }
+    scene.init_level_scene();
+    scene.init();
 }
 
 void World::update()
 {
-    scene->update();
-
-    // for (Solid* solid : solids)
-    //     solid->update(this);
-
-    // for (Actor* actor : actors)
-    //     actor->update(this);
-
-    // camera.update(this);
-
-    // debug.update(this);
-}
-
-void World::fixed_update(float dt)
-{
-    // for (Solid* solid : solids)
-    //     solid->fixed_update(this, dt);
-
-    // for (Actor* actor : actors)
-    //     actor->fixed_update(this, dt);
-}
-
-void World::render()
-{
-    // BeginDrawing();
-    // ClearBackground(clear_color);
-
-    // BeginMode2D(camera.get_camera());
-    // render_2d_inner();
-    // debug.render_2d(this);
-    // EndMode2D();
-
-    // debug.render(this);
-
-    // EndDrawing();
-}
-
-void World::render_2d_inner()
-{
-    // for (Solid* solid : solids)
-    //     solid->render(this);
-
-    // for (Actor* actor : actors)
-    //     actor->render(this);
+    scene.update();
 }

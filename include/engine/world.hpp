@@ -40,9 +40,6 @@ public:
 private:
     void init();
     void update();
-    void fixed_update(float dt);
-    void render();
-    void render_2d_inner();
 
     friend class Game;
 
@@ -58,5 +55,5 @@ private:
 
 private:
     // ECS Overhaul
-    std::unique_ptr<Scene> scene;
+    celestelike::Scene scene;
 };

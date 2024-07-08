@@ -1,15 +1,47 @@
 #pragma once
 
 #include "entt/entt.hpp"
+#include "save.hpp"
+#include <vector>
+
+namespace celestelike {
+
+enum Order {
+    First = 10,
+    Second = 20,
+    Third = 30,
+    Fourth = 40,
+    Fith = 50
+};
+
+struct System {
+
+    std::function<void(entt::registry&, float)> system;
+    int priority = Order::Third;
+};
 
 class Scene {
 public:
-    Scene() {};
+    Scene();
     ~Scene() {};
 
-    virtual void init() {};
-    virtual void update() = 0;
+    void init();
+    void update();
+
+    void init_level_scene();
+    void load_level(save::SaveData data);
+    save::SaveData save_level();
 
 protected:
     entt::registry reg;
+    std::vector<System> update_systems;
+    std::vector<System> fixed_systems;
+    std::vector<System> render_systems;
+
+private:
+    void add_update(System system);
+    void add_fixed(System system);
+    void add_render(System system);
 };
+
+}
