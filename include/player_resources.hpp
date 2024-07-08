@@ -20,6 +20,7 @@ struct PlayerInput {
     int y_dir = 0;
     bool jump_held = false;
     bool jump_pressed = false;
+    float time_jump_pressed = 0.0f;
 
     bool ability_1_pressed = false;
     bool ability_1_down = false;

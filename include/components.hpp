@@ -32,7 +32,30 @@ struct WalkSpeed {
 
 struct Jump {
     int impulse;
+
+    bool coyote_usable;
+    float coyote_time;
+    bool buffered_jump_usable;
+    float jump_buffer;
     bool ended_early;
+    float fall_multiplier;
+
+    float time_left_ground;
+
+    Jump()
+        : Jump(-800, 0.2f, 0.2f, 3.0f) {};
+
+    Jump(int impulse, float coyote_time, float jump_buffer, float fall_multiplier)
+        : impulse(impulse)
+        , coyote_time(coyote_time)
+        , jump_buffer(jump_buffer)
+        , fall_multiplier(fall_multiplier)
+    {
+        coyote_usable = false;
+        buffered_jump_usable = false;
+        ended_early = false;
+        time_left_ground = 0.0f;
+    }
 };
 
 struct Gravity {

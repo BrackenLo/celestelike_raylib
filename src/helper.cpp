@@ -49,8 +49,8 @@ namespace physics {
         int d = pos1 - pos2;
         int p = (size1 + size2) - std::abs(d);
 
-        // if (p <= 0)
-        //     return 0;
+        if (p <= 0)
+            return 0;
 
         int s = std::copysign(1, d);
         int depth = p * s;

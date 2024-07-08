@@ -13,8 +13,12 @@ void LevelScene::init()
 {
     trace("init level");
 
-    reg.ctx().emplace<ClearColor>(ClearColor { RAYWHITE });
+    reg.ctx().emplace<Time>();
+    reg.ctx().emplace<FixedTimestep>();
+    reg.ctx().emplace<ClearColor>();
     reg.ctx().emplace<PlayerInput>();
+
+    player::init_systems(reg);
 
     spawn_player(reg);
     spawn_camera(reg);
@@ -27,18 +31,50 @@ void LevelScene::update()
 {
     float dt = GetFrameTime();
 
-    render::render(reg, dt);
+    Time& time = reg.ctx().get<Time>();
+    time.elapsed += dt;
+
+    //----------------------------------------------
 
     player::update_input(reg, dt);
 
-    player::check_collisions(reg, dt);
+    camera::camera_follow(reg, dt);
+    camera::camera_update(reg, dt);
+
+    //----------------------------------------------
+
+    fixed_update();
+
+    //----------------------------------------------
+
+    render::render(reg, dt);
+}
+
+void LevelScene::fixed_update()
+{
+    FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
+
+    if (fixed.paused)
+        return;
+
+    fixed.accumulator += GetFrameTime();
+
+    if (fixed.accumulator < fixed.timestep)
+        return;
+
+    fixed.accumulator -= fixed.timestep;
+    fixed.elapsed += fixed.timestep;
+
+    float dt = fixed.timestep;
+
+    physics::check_on_walls(reg, dt);
+
+    player::examine_collisions(reg, dt);
     player::handle_walk(reg, dt);
     player::handle_jump(reg, dt);
     player::handle_gravity(reg, dt);
-    player::reset_values(reg, dt);
 
-    camera::camera_follow(reg, dt);
-    camera::camera_update(reg, dt);
+    player::reset_values(reg, dt);
 
     update::pos_lerp(reg, dt);
 

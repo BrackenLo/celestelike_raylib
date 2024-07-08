@@ -22,8 +22,8 @@ entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc)
 
     reg.emplace<Velocity>(entity, 0, 0);
     reg.emplace<WalkSpeed>(entity, 2200, 2600, 400);
-    reg.emplace<Jump>(entity, -400, false);
-    reg.emplace<Gravity>(entity, 300, 400);
+    reg.emplace<Jump>(entity);
+    reg.emplace<Gravity>(entity, 2000, 800);
 
     reg.emplace<Actor>(entity);
     reg.emplace<Player>(entity);

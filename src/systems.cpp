@@ -128,6 +128,80 @@ void physics::apply_velocity_collision(entt::registry& reg, float dt)
     }
 }
 
+void physics::check_on_walls(entt::registry& reg, float dt)
+{
+    auto v_actor = reg.view<Actor, Pos, CollisionBounds>();
+    auto v_solid = reg.view<Solid, Pos, CollisionBounds>();
+
+    auto v_on_ground = reg.view<OnGround>();
+    auto v_on_ceiling = reg.view<OnCeiling>();
+
+    for (entt::entity actor : v_actor) {
+        bool ground_hit = false;
+        bool ceiling_hit = false;
+
+        const Pos& actor_pos = v_actor.get<Pos>(actor);
+        const Bounds& actor_bounds = v_actor.get<CollisionBounds>(actor);
+
+        const Pos actor_check_pos = { actor_pos.x, actor_pos.y - 2 };
+        const Bounds actor_check_bounds = {
+            actor_bounds.half_width, actor_bounds.half_height + 4
+        };
+
+        for (entt::entity solid : v_solid) {
+            const Pos& solid_pos = v_solid.get<Pos>(solid);
+            const Bounds& solid_bounds = v_solid.get<CollisionBounds>(solid);
+
+            if (check_collision(
+                    actor_check_pos, actor_check_bounds,
+                    solid_pos, solid_bounds) //
+            ) {
+                int depth = physics::get_collision_depth_y(
+                    actor_check_pos, actor_check_bounds,
+                    solid_pos, solid_bounds);
+
+                if (depth < 0)
+                    ground_hit = true;
+                else
+                    ceiling_hit = true;
+
+                if (ground_hit && ceiling_hit)
+                    break;
+            }
+        }
+
+        //----------------------------------------------
+
+        if (ground_hit) {
+            if (v_on_ground.contains(actor)) {
+                OnGround& on_ground = v_on_ground.get<OnGround>(actor);
+                on_ground.just_started = false;
+
+            } else {
+                reg.emplace<OnGround>(actor, true);
+            }
+
+        } else {
+            if (v_on_ground.contains(actor))
+                reg.erase<OnGround>(actor);
+        }
+
+        if (ceiling_hit) {
+            if (v_on_ceiling.contains(actor)) {
+                OnCeiling& on_ceiling = v_on_ceiling.get<OnCeiling>(actor);
+                on_ceiling.just_started = false;
+
+            } else {
+                reg.emplace<OnCeiling>(actor, true);
+            }
+
+        } else {
+            if (v_on_ceiling.contains(actor))
+                reg.erase<OnCeiling>(actor);
+        }
+    }
+}
+
 void update::pos_lerp(entt::registry& reg, float dt)
 {
     auto view = reg.view<Pos, PosLerp>();
@@ -141,10 +215,16 @@ void update::pos_lerp(entt::registry& reg, float dt)
     }
 }
 
+void player::init_systems(entt::registry& reg)
+{
+    reg.on_destroy<OnGround>().connect<&left_ground>(); // NOTE - triggers before component removal
+}
+
 // Update all player inputs buttons
 void player::update_input(entt::registry& reg, float dt)
 {
     PlayerInput& input = reg.ctx().get<PlayerInput>();
+    FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
 
     bool right_down = are_keys_down(input.key_right);
     bool left_down = are_keys_down(input.key_left);
@@ -155,7 +235,10 @@ void player::update_input(entt::registry& reg, float dt)
     input.y_dir = up_down - down_down;
 
     input.jump_held = are_keys_down(input.key_jump);
-    input.jump_pressed = input.jump_pressed || are_keys_pressed(input.key_jump);
+    if (are_keys_pressed(input.key_jump)) {
+        input.jump_pressed = true;
+        input.time_jump_pressed = fixed.elapsed;
+    }
 
     input.ability_1_pressed = input.ability_1_pressed || are_keys_pressed(input.key_ability_1);
     input.ability_2_pressed = input.ability_2_pressed || are_keys_pressed(input.key_ability_2);
@@ -165,74 +248,45 @@ void player::update_input(entt::registry& reg, float dt)
     input.ability_2_down = are_keys_down(input.key_ability_2);
 }
 
-void player::check_collisions(entt::registry& reg, float dt)
+void player::examine_collisions(entt::registry& reg, float dt)
 {
-    auto v_player = reg.view<Player, Pos, CollisionBounds>();
-    auto v_solid = reg.view<Solid, Pos, CollisionBounds>();
+    auto v_player = reg.view<Player, Velocity>();
+    auto v_jump = reg.view<Jump>();
 
     auto v_on_ground = reg.view<OnGround>();
     auto v_on_ceiling = reg.view<OnCeiling>();
 
     for (entt::entity player : v_player) {
-        bool ground_hit = false;
-        bool ceiling_hit = false;
+        Velocity& velocity = v_player.get<Velocity>(player);
 
-        const Pos& player_pos = v_player.get<Pos>(player);
-        const Bounds& player_bounds = v_player.get<CollisionBounds>(player);
+        // Player is on ceiling
+        if (v_on_ceiling.contains(player))
+            velocity.y = std::max(0, velocity.y);
 
-        const Pos player_ceiling_pos = { player_pos.x, player_pos.y - 2 };
+        // Player is on ground
+        if (v_on_ground.contains(player)) {
 
-        for (entt::entity solid : v_solid) {
-            const Pos& solid_pos = v_solid.get<Pos>(solid);
-            const Bounds& solid_bounds = v_solid.get<CollisionBounds>(solid);
+            // Player can jump
+            if (v_jump.contains(player)) {
+                Jump& jump = v_jump.get<Jump>(player);
 
-            if (physics::check_collision(player_ceiling_pos, player_bounds, solid_pos, solid_bounds)) {
-                ceiling_hit = true;
-                break;
+                jump.coyote_usable = true;
+                jump.buffered_jump_usable = true;
+                jump.ended_early = false;
             }
         }
+    }
+}
 
-        const Pos player_ground_pos = { player_pos.x, player_pos.y + 2 };
+void player::left_ground(entt::registry& reg, entt::entity player)
+{
+    const FixedTimestep& fixed_time = reg.ctx().get<FixedTimestep>();
 
-        for (entt::entity solid : v_solid) {
-            const Pos& solid_pos = v_solid.get<Pos>(solid);
-            const Bounds& solid_bounds = v_solid.get<CollisionBounds>(solid);
+    auto v_jump = reg.view<Jump>();
+    if (v_jump.contains(player)) {
+        Jump& jump = v_jump.get<Jump>(player);
 
-            if (physics::check_collision(player_ground_pos, player_bounds, solid_pos, solid_bounds)) {
-                ground_hit = true;
-                break;
-            }
-        }
-
-        if (ground_hit) {
-            if (v_on_ground.contains(player)) {
-                OnGround& on_ground = v_on_ground.get<OnGround>(player);
-                on_ground.just_started = false;
-
-            } else {
-                reg.emplace<OnGround>(player, true);
-                trace("Hit Ground");
-            }
-        } else {
-            if (v_on_ground.contains(player)) {
-                reg.erase<OnGround>(player);
-            }
-        }
-
-        if (ceiling_hit) {
-            if (v_on_ceiling.contains(player)) {
-                OnCeiling& on_ceiling = v_on_ceiling.get<OnCeiling>(player);
-                on_ceiling.just_started = false;
-
-            } else {
-                reg.emplace<OnCeiling>(player, true);
-                trace("Hit Ceiling");
-            }
-        } else {
-            if (v_on_ceiling.contains(player)) {
-                reg.erase<OnCeiling>(player);
-            }
-        }
+        jump.time_left_ground = fixed_time.elapsed;
     }
 }
 
@@ -263,20 +317,46 @@ void player::handle_walk(entt::registry& reg, float dt)
     }
 }
 
+bool has_buffered_jump(const Jump& jump, const PlayerInput& input, const FixedTimestep& fixed)
+{
+    return jump.buffered_jump_usable && fixed.elapsed < input.time_jump_pressed + jump.jump_buffer;
+}
+
+bool can_coyote_jump(const Jump& jump, bool grounded, const FixedTimestep& fixed)
+{
+    return jump.coyote_usable && !grounded && fixed.elapsed < jump.time_left_ground + jump.coyote_time;
+}
+
 void player::handle_jump(entt::registry& reg, float dt)
 {
     PlayerInput& input = reg.ctx().get<PlayerInput>();
+    FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
 
     auto v_player = reg.view<Player, Velocity, Jump>();
     auto v_on_ground = reg.view<OnGround>();
 
     for (entt::entity entity : v_player) {
-        if (input.jump_pressed && v_on_ground.contains(entity)) {
+        Velocity& velocity = v_player.get<Velocity>(entity);
+        Jump& jump = v_player.get<Jump>(entity);
 
-            Velocity& velocity = v_player.get<Velocity>(entity);
-            const Jump& jump = v_player.get<Jump>(entity);
+        bool grounded = v_on_ground.contains(entity);
 
+        // Check if variable jump height applicable
+        if (!jump.ended_early && !grounded && !input.jump_held && velocity.y < 0)
+            jump.ended_early = true;
+
+        // Check if jump pressed or was pressed in time
+        if (!input.jump_pressed && !has_buffered_jump(jump, input, fixed))
+            continue;
+
+        // Check if we can jump
+        if (grounded || can_coyote_jump(jump, grounded, fixed)) {
             velocity.y = jump.impulse;
+
+            jump.ended_early = false;
+            input.time_jump_pressed = 0;
+            jump.buffered_jump_usable = false;
+            jump.coyote_usable = false;
         }
     }
 }
@@ -284,18 +364,28 @@ void player::handle_jump(entt::registry& reg, float dt)
 void player::handle_gravity(entt::registry& reg, float dt)
 {
     auto v_player = reg.view<Player, Velocity, Gravity>();
+    auto v_jump = reg.view<Jump>();
     auto v_grounded = reg.view<OnGround>();
 
     for (entt::entity player : v_player) {
         Velocity& velocity = v_player.get<Velocity>(player);
         const Gravity& gravity = v_player.get<Gravity>(player);
 
+        // On ground
         if (v_grounded.contains(player) && velocity.y >= 0.0f) {
             velocity.y = 100; // TODO | TEST - Grounding force
 
         } else {
-            // TODO - Variable jump height
-            velocity.y = istep(velocity.y, gravity.max_fall_speed, gravity.fall_speed * dt);
+            int fall_speed = gravity.fall_speed;
+
+            if (v_jump.contains(player)) {
+                Jump& jump = v_jump.get<Jump>(player);
+
+                if (jump.ended_early && velocity.y < 0)
+                    fall_speed *= jump.fall_multiplier;
+            }
+
+            velocity.y = istep(velocity.y, gravity.max_fall_speed, fall_speed * dt);
         }
     }
 }

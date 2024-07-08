@@ -11,6 +11,8 @@ public:
     virtual void init() override;
     virtual void update() override;
 
+    void fixed_update();
+
     void load(save::SaveData data);
     save::SaveData save();
 };

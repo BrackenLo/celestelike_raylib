@@ -32,7 +32,8 @@ int World::run()
     SetTraceLogLevel(TraceLogLevel::LOG_ALL);
     GuiLoadStyle("style_candy.rgs");
 
-    SetTargetFPS(physics_data.fps);
+    // SetTargetFPS(physics_data.fps);
+    SetTargetFPS(60);
 
     init();
 
