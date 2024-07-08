@@ -2,16 +2,16 @@
 
 #include "components.hpp"
 #include "factory.hpp"
+#include "helper.hpp"
 #include "player_resources.hpp"
 #include "resources.hpp"
 #include "systems.hpp"
-#include "tools.hpp"
 
 namespace celestelike {
 
 void LevelScene::init()
 {
-    trace("init level");
+    tools::trace("init level");
 
     reg.ctx().emplace<Time>();
     reg.ctx().emplace<FixedTimestep>();
@@ -90,7 +90,7 @@ void LevelScene::load(save::SaveData data)
         loaded_solids += 1;
     }
 
-    trace(TextFormat("Loaeded %d solids", loaded_solids));
+    tools::trace_fmt("Loaded %d solids", loaded_solids);
 
     spawn_player(reg, data.player);
     spawn_camera(reg);

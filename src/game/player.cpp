@@ -1,7 +1,7 @@
 #include "player.hpp"
 
-#include "../engine/tools.hpp"
 #include "../engine/world.hpp"
+#include "helper.hpp"
 #include "player_inner_characters.hpp"
 #include "raymath.h"
 #include <cmath>
@@ -119,36 +119,36 @@ void Player::player_input()
 
     // Get movement directions
     // Left and right
-    if (are_keys_down(key_left))
+    if (celestelike::tools::are_keys_down(key_left))
         input_dir.x -= 1.0f;
-    if (are_keys_down(key_right))
+    if (celestelike::tools::are_keys_down(key_right))
         input_dir.x += 1.0f;
 
     // Up and down
-    if (are_keys_down(key_up))
+    if (celestelike::tools::are_keys_down(key_up))
         input_dir.y -= 1.0f;
-    if (are_keys_down(key_down))
+    if (celestelike::tools::are_keys_down(key_down))
         input_dir.y += 1.0f;
 
     // Start jump buffer
-    if (are_keys_pressed(key_jump)) {
+    if (celestelike::tools::are_keys_pressed(key_jump)) {
         jump_pressed = true;
         jump_buffer = inner->jump_buffer_size;
     }
 
-    jump_held = are_keys_down(key_jump);
+    jump_held = celestelike::tools::are_keys_down(key_jump);
 
-    if (are_keys_pressed(key_ability_1))
+    if (celestelike::tools::are_keys_pressed(key_ability_1))
         ability_1_pressed = true;
 
-    if (are_keys_pressed(key_ability_2))
+    if (celestelike::tools::are_keys_pressed(key_ability_2))
         ability_2_pressed = true;
 
-    if (are_keys_pressed(key_ability_3))
+    if (celestelike::tools::are_keys_pressed(key_ability_3))
         ability_3_pressed = true;
 
-    ability_1_down = are_keys_down(key_ability_1);
-    ability_2_down = are_keys_down(key_ability_2);
+    ability_1_down = celestelike::tools::are_keys_down(key_ability_1);
+    ability_2_down = celestelike::tools::are_keys_down(key_ability_2);
 }
 
 void Player::resolve_collisions(World* world, float dt)
@@ -253,7 +253,7 @@ void Player::resolve_collisions(World* world, float dt)
     }
 
     if (on_wall) {
-        velocity.x = step(velocity.x, 0.0f, inner->deaccel * dt);
+        velocity.x = celestelike::tools::step(velocity.x, 0.0f, inner->deaccel * dt);
         inner->on_wall(world, dt);
     }
 }
@@ -282,32 +282,3 @@ void Player::get_properties(std::vector<DebugProperty>* properties)
 }
 
 //====================================================================
-
-// Player -> Raw
-std::unique_ptr<class RawEntity> Player::ToRaw()
-{
-    RawPlayer* raw = new RawPlayer(pos.x, pos.y, player_characters, player_character_index);
-    return std::unique_ptr<RawEntity>(raw);
-}
-
-//----------------------------------------------
-
-// Raw constructor
-RawPlayer::RawPlayer(int x, int y, std::vector<PlayerType> player_characters, int player_character_index)
-    : RawEntity(x, y)
-    , player_characters(player_characters)
-    , player_character_index(player_character_index)
-{
-}
-
-// Raw -> Player
-std::unique_ptr<class Entity> RawPlayer::ToEntity()
-{
-    Vector2 pos = {
-        static_cast<float>(x),
-        static_cast<float>(y),
-    };
-
-    std::unique_ptr<Player> player(new Player(pos, player_characters, player_character_index));
-    return player;
-}

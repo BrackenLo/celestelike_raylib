@@ -98,13 +98,17 @@ struct PosLerp {
 
 struct GameCamera {
     Camera2D camera;
+    float zoom_target;
+    float zoom_speed;
 
     GameCamera()
     {
         camera.offset = { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f };
         camera.target = { 0, 0 };
         camera.rotation = 0;
-        camera.zoom = 1;
+        camera.zoom = zoom_target = 1;
+
+        zoom_speed = 1;
     }
     operator Camera2D&() { return camera; }
     operator const Camera2D&() const { return camera; }

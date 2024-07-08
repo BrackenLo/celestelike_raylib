@@ -1,6 +1,5 @@
 #pragma once
 
-#include "camera.hpp"
 #include "debug.hpp"
 #include "physics.hpp"
 #include "scene.hpp"
@@ -37,9 +36,6 @@ public:
     std::vector<const char*> get_levels();
     bool save_level(const char* level_name);
     bool load_level(const char* level_file_name);
-
-public:
-    GameCamera camera;
 
 private:
     void init();

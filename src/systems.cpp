@@ -1,13 +1,13 @@
 #include "systems.hpp"
 
+#include "raylib.h"
+#include "raymath.h"
+#include <cmath>
+
 #include "components.hpp"
 #include "helper.hpp"
 #include "player_resources.hpp"
-#include "raylib.h"
-#include "raymath.h"
 #include "resources.hpp"
-#include "tools.hpp"
-#include <cmath>
 
 namespace celestelike {
 
@@ -116,10 +116,6 @@ void physics::apply_velocity_collision(entt::registry& reg, float dt)
         bool hit_bottom = down_nudge;
 
         if (hit_top != hit_bottom) {
-            // if (hit_top)
-            //     grounded = true;
-            // else
-            //     on_ceiling = true;
             vel.y = 0;
             pos.y += up_nudge + down_nudge;
         } else {
@@ -226,26 +222,26 @@ void player::update_input(entt::registry& reg, float dt)
     PlayerInput& input = reg.ctx().get<PlayerInput>();
     FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
 
-    bool right_down = are_keys_down(input.key_right);
-    bool left_down = are_keys_down(input.key_left);
+    bool right_down = tools::are_keys_down(input.key_right);
+    bool left_down = tools::are_keys_down(input.key_left);
     input.x_dir = right_down - left_down;
 
-    bool up_down = are_keys_down(input.key_up);
-    bool down_down = are_keys_down(input.key_down);
+    bool up_down = tools::are_keys_down(input.key_up);
+    bool down_down = tools::are_keys_down(input.key_down);
     input.y_dir = up_down - down_down;
 
-    input.jump_held = are_keys_down(input.key_jump);
-    if (are_keys_pressed(input.key_jump)) {
+    input.jump_held = tools::are_keys_down(input.key_jump);
+    if (tools::are_keys_pressed(input.key_jump)) {
         input.jump_pressed = true;
         input.time_jump_pressed = fixed.elapsed;
     }
 
-    input.ability_1_pressed = input.ability_1_pressed || are_keys_pressed(input.key_ability_1);
-    input.ability_2_pressed = input.ability_2_pressed || are_keys_pressed(input.key_ability_2);
-    input.ability_3_pressed = input.ability_3_pressed || are_keys_pressed(input.key_ability_3);
+    input.ability_1_pressed = input.ability_1_pressed || tools::are_keys_pressed(input.key_ability_1);
+    input.ability_2_pressed = input.ability_2_pressed || tools::are_keys_pressed(input.key_ability_2);
+    input.ability_3_pressed = input.ability_3_pressed || tools::are_keys_pressed(input.key_ability_3);
 
-    input.ability_1_down = are_keys_down(input.key_ability_1);
-    input.ability_2_down = are_keys_down(input.key_ability_2);
+    input.ability_1_down = tools::are_keys_down(input.key_ability_1);
+    input.ability_2_down = tools::are_keys_down(input.key_ability_2);
 }
 
 void player::examine_collisions(entt::registry& reg, float dt)
@@ -313,7 +309,7 @@ void player::handle_walk(entt::registry& reg, float dt)
             speed = target_sign == current_sign ? walk_speed.accel : walk_speed.deaccel;
         }
 
-        velocity.x = istep(velocity.x, target_velocity, speed * dt);
+        velocity.x = tools::step<int>(velocity.x, target_velocity, speed * dt);
     }
 }
 
@@ -385,7 +381,7 @@ void player::handle_gravity(entt::registry& reg, float dt)
                     fall_speed *= jump.fall_multiplier;
             }
 
-            velocity.y = istep(velocity.y, gravity.max_fall_speed, fall_speed * dt);
+            velocity.y = tools::step<int>(velocity.y, gravity.max_fall_speed, fall_speed * dt);
         }
     }
 }
@@ -425,15 +421,17 @@ void camera::camera_update(entt::registry& reg, float dt)
     bool screen_resize = IsWindowResized();
 
     for (entt::entity entity : v_camera) {
-        Camera2D& camera = v_camera.get<GameCamera>(entity);
+        GameCamera& camera = v_camera.get<GameCamera>(entity);
 
         if (v_pos.contains(entity)) {
             const Pos& pos = v_pos.get<Pos>(entity);
-            camera.target = { static_cast<float>(pos.x), static_cast<float>(pos.y) };
+            camera.camera.target = { static_cast<float>(pos.x), static_cast<float>(pos.y) };
         }
 
+        camera.camera.zoom = Lerp(camera.camera.zoom, camera.zoom_target, camera.zoom_speed * dt);
+
         if (screen_resize)
-            camera.offset = {
+            camera.camera.offset = {
                 GetScreenWidth() / 2.0f,
                 GetScreenHeight() / 2.0f
             };

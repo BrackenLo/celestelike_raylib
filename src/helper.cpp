@@ -68,4 +68,43 @@ namespace physics {
     }
 }
 
+namespace tools {
+
+    void trace(const char* msg)
+    {
+        TraceLog(TraceLogLevel::LOG_INFO, msg);
+    }
+
+    void trace_fmt(const char* msg...)
+    {
+        TraceLog(TraceLogLevel::LOG_INFO, TextFormat(msg));
+    }
+
+    bool are_keys_down(std::vector<int> keys)
+    {
+        for (int key : keys)
+            if (IsKeyDown(key))
+                return true;
+        return false;
+    }
+
+    bool are_keys_pressed(std::vector<int> keys)
+    {
+        for (int key : keys)
+            if (IsKeyPressed(key))
+                return true;
+        return false;
+    }
+
+    int round_to(int num, int multiple)
+    {
+        // TODO - find more optimised solution? this one rounds up by default
+        int is_positive = (int)(num >= 0);
+        return ((num + is_positive * (multiple - 1)) / multiple) * multiple - multiple;
+
+        // for use with multiples of two
+        // return (((int)num + multiple - 1) & -multiple) - multiple;
+    }
+}
+
 }

@@ -25,11 +25,11 @@ namespace player {
     void update_input(entt::registry& reg, float dt);
 
     void examine_collisions(entt::registry& reg, float dt);
+    void left_ground(entt::registry& reg, entt::entity player);
+
     void handle_walk(entt::registry& reg, float dt);
     void handle_jump(entt::registry& reg, float dt);
     void handle_gravity(entt::registry& reg, float dt);
-
-    void left_ground(entt::registry& reg, entt::entity player);
 
     void reset_values(entt::registry& reg, float dt);
 }

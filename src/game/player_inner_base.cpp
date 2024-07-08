@@ -1,8 +1,8 @@
 #include "player_inner_base.hpp"
 
 #include "../engine/physics.hpp"
-#include "../engine/tools.hpp"
 #include "../engine/world.hpp"
+#include "helper.hpp"
 #include "player.hpp"
 #include "raymath.h"
 
@@ -70,7 +70,7 @@ void PlayerInner::fixed_update(World* world, float dt)
         outer->jumping = false;
 
     // Apply and step gravity towards max_fall_speed
-    outer->velocity.y = step(outer->velocity.y, max_fall_speed, get_gravity(world) * dt);
+    outer->velocity.y = celestelike::tools::step(outer->velocity.y, max_fall_speed, get_gravity(world) * dt);
 
     if (outer->ability_1_pressed) {
         do_ability1(world, dt);
@@ -110,7 +110,7 @@ void PlayerInner::walk(World* world, float dt)
     }
 
     // TODO - only clamp like this on floor?
-    outer->velocity.x = step(outer->velocity.x, target_velocity, speed * dt);
+    outer->velocity.x = celestelike::tools::step(outer->velocity.x, target_velocity, speed * dt);
 }
 
 bool PlayerInner::check_can_jump(World* world, float dt)
@@ -184,12 +184,12 @@ void PlayerInner::on_grounded(World* world, float dt)
 
 void PlayerInner::on_ceiling(World* world, float dt)
 {
-    outer->velocity.y = step(outer->velocity.y, 0.0f, fall_gravity * dt * 0.5);
+    outer->velocity.y = celestelike::tools::step(outer->velocity.y, 0.0f, fall_gravity * dt * 0.5f);
 }
 
 void PlayerInner::on_wall(World* world, float dt)
 {
-    outer->velocity.x = step(outer->velocity.x, 0.0f, deaccel * dt);
+    outer->velocity.x = celestelike::tools::step(outer->velocity.x, 0.0f, deaccel * dt);
 }
 
 void PlayerInner::do_ability1(World* world, float dt)

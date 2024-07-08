@@ -1,16 +1,13 @@
 #include "world.hpp"
 
-#include "cereal/details/helpers.hpp"
 #include "level_scene.hpp"
 #include "raylib.h"
 #include <algorithm>
 #include <cstring>
 #include <string>
 
-#include "../game/player.hpp"
 #include "entity.hpp"
 
-#include "save.hpp"
 #include <cereal/archives/json.hpp>
 #include <cereal/archives/portable_binary.hpp>
 #include <cereal/archives/xml.hpp>
@@ -196,8 +193,8 @@ bool World::save_level(const char* level_name)
 
     TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Saving file: %s", file_name.c_str()));
 
-    SaveData data(this);
-    archive(data);
+    // SaveData data(this);
+    // archive(data);
     return true;
 }
 
@@ -221,57 +218,16 @@ bool World::load_level(const char* level_file_name)
 
     cereal::JSONInputArchive archive(file);
 
-    SaveData data;
+    // SaveData data;
 
-    try {
-        archive(data);
-    } catch (cereal::Exception val) {
-        TraceLog(TraceLogLevel::LOG_WARNING, TextFormat("Could not deserialise level '%s' - %s", level_file_name, val.what()));
-        return false;
-    }
+    // try {
+    //     archive(data);
+    // } catch (cereal::Exception val) {
+    //     TraceLog(TraceLogLevel::LOG_WARNING, TextFormat("Could not deserialise level '%s' - %s", level_file_name, val.what()));
+    //     return false;
+    // }
 
-    int loaded_actors = 0;
-    int loaded_solids = 0;
-    int loaded_other = 0;
-
-    for (std::unique_ptr<RawEntity>& raw : data.entities) {
-        Entity* entity = raw->ToEntity().release();
-
-        Actor* actor = dynamic_cast<Actor*>(entity);
-        if (actor) {
-            // TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Spawning Actor"));
-            loaded_actors += 1;
-            actors.push_back(actor);
-            continue;
-        }
-
-        Solid* solid = dynamic_cast<Solid*>(entity);
-        if (solid) {
-            // TraceLog(TraceLogLevel::LOG_INFO, TextFormat("Spawning Solid"));
-            loaded_solids += 1;
-            solids.push_back(solid);
-            continue;
-        }
-
-        TraceLog(TraceLogLevel::LOG_WARNING, "World load level - Entity was neither actor or solid");
-        loaded_other += 1;
-        delete entity;
-    }
-
-    for (Actor* actor : actors) {
-        Player* player = dynamic_cast<Player*>(actor);
-        if (player) {
-            player_character = player;
-            camera.set_follow_target(player_character, true);
-            break;
-        }
-    }
-
-    TraceLog(TraceLogLevel::LOG_INFO, "--------World load level - Done!--------");
-    TraceLog(
-        TraceLogLevel::LOG_INFO,
-        "    Loaded %d actors, %d solids and found %d other",
-        loaded_actors, loaded_solids, loaded_other);
+    // TraceLog(TraceLogLevel::LOG_INFO, "--------World load level - Done!--------");
     return true;
 }
 

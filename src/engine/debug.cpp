@@ -2,8 +2,8 @@
 
 #include "../defs.hpp"
 #include "../game/player.hpp"
+#include "helper.hpp"
 #include "raylib.h"
-#include "tools.hpp"
 #include "ui.hpp"
 #include "world.hpp"
 #include <algorithm>
@@ -56,12 +56,12 @@ void Debugger::update(World* world)
             is_slow_mode ? 1.0f / 30.0f : 1.0f / 60.0f;
     }
 
-    // Zoom in
-    if (IsKeyDown(KEY_COMMA))
-        world->camera.zoom_target = fmin(world->camera.zoom_target + 0.2, 20.0);
-    // Zoom out
-    if (IsKeyDown(KEY_PERIOD))
-        world->camera.zoom_target = fmax(world->camera.zoom_target - 0.2, 0.2);
+    // // Zoom in
+    // if (IsKeyDown(KEY_COMMA))
+    //     world->camera.zoom_target = fmin(world->camera.zoom_target + 0.2, 20.0);
+    // // Zoom out
+    // if (IsKeyDown(KEY_PERIOD))
+    //     world->camera.zoom_target = fmax(world->camera.zoom_target - 0.2, 0.2);
 
     update_level_editor(world);
 }
@@ -356,11 +356,11 @@ void Debugger::build_inspector_menu(World* world)
         debug_entities.push_back(debug_actor);
     }
 
-    {
-        IDebug* debug_actor = dynamic_cast<IDebug*>(&world->camera);
-        if (debug_actor)
-            debug_entities.push_back(debug_actor);
-    }
+    // {
+    //     IDebug* debug_actor = dynamic_cast<IDebug*>(&world->camera);
+    //     if (debug_actor)
+    //         debug_entities.push_back(debug_actor);
+    // }
 }
 
 void Debugger::render_physics_menu(World* world)
@@ -483,10 +483,11 @@ void Debugger::update_level_editor(World* world)
     if (!is_level_editor_enabled)
         return;
 
-    world_mouse_pos = GetScreenToWorld2D(GetMousePosition(), world->camera.get_camera());
+    // world_mouse_pos = GetScreenToWorld2D(GetMousePosition(), world->camera.get_camera());
+    world_mouse_pos = GetMousePosition();
 
-    snapped_mouse_x = round_to(world_mouse_pos.x, TILE_WIDTH);
-    snapped_mouse_y = round_to(world_mouse_pos.y, TILE_HEIGHT);
+    snapped_mouse_x = celestelike::tools::round_to(world_mouse_pos.x, TILE_WIDTH);
+    snapped_mouse_y = celestelike::tools::round_to(world_mouse_pos.y, TILE_HEIGHT);
 
     // Skip if mouse in menu
     if (is_debug_menu && CheckCollisionPointRec(GetMousePosition(), menu_rect))
@@ -535,10 +536,11 @@ void Debugger::render_level_editor(World* world)
         Fade(BLUE, 0.4));
 
     // Draw Grid
-    Vector2 pos = GetScreenToWorld2D({ 0, 0 }, world->camera.get_camera());
+    // Vector2 pos = GetScreenToWorld2D({ 0, 0 }, world->camera.get_camera());
+    Vector2 pos = { 0.0f, 0.0f };
 
-    int origin_x = round_to(pos.x, TILE_WIDTH);
-    int origin_y = round_to(pos.y, TILE_HEIGHT);
+    int origin_x = celestelike::tools::round_to(pos.x, TILE_WIDTH);
+    int origin_y = celestelike::tools::round_to(pos.y, TILE_HEIGHT);
 
     int width = GetScreenWidth() + 200;
     int height = GetScreenHeight() + 200;

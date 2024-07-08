@@ -58,28 +58,3 @@ void Actor::get_properties(std::vector<DebugProperty>* properties)
 }
 
 //====================================================================
-
-RawSolid::RawSolid(int x, int y, int half_width, int half_height)
-    : RawEntity(x, y)
-    , half_width(half_width)
-    , half_height(half_height)
-{
-}
-
-std::unique_ptr<RawEntity> Solid::ToRaw()
-{
-    RawSolid* raw = new RawSolid(pos.x, pos.y, half_width, half_height);
-
-    return std::unique_ptr<RawEntity>(raw);
-}
-
-std::unique_ptr<Entity> RawSolid::ToEntity()
-{
-    Vector2 pos = {
-        static_cast<float>(x),
-        static_cast<float>(y),
-    };
-
-    std::unique_ptr<Solid> solid(new Solid(pos, half_width, half_height));
-    return solid;
-}

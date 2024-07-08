@@ -1,13 +1,13 @@
 #pragma once
 #include "../engine/entity.hpp"
-#include "../engine/save.hpp"
 #include "player_inner_base.hpp"
 #include "raylib.h"
+#include <memory>
 #include <vector>
 
 //====================================================================
 
-class Player : public Actor, public IToRawData {
+class Player : public Actor {
 public:
     friend class PlayerInner;
     friend class DebugPlayerInner;
@@ -82,40 +82,4 @@ public:
     // IDebug functionality
     virtual const char* get_name() override;
     virtual void get_properties(std::vector<DebugProperty>* properties) override;
-
-public:
-    // IToRawData functionality
-    virtual std::unique_ptr<class RawEntity> ToRaw() override;
 };
-
-//====================================================================
-// Save data stuff
-
-struct RawPlayer : public RawEntity {
-public:
-    RawPlayer() { }
-    RawPlayer(int x, int y, std::vector<PlayerType> player_characters, int player_character_index);
-
-public:
-    std::vector<PlayerType> player_characters;
-    int player_character_index;
-
-public:
-    virtual std::unique_ptr<class Entity> ToEntity() override;
-
-    template <class Archive>
-    void serialize(Archive& archive, std::uint32_t const version)
-    {
-        // Version 1
-        archive(
-            cereal::base_class<RawEntity>(this),
-            cereal::make_nvp("character_types", player_characters),
-            cereal::make_nvp("character_index", player_character_index));
-
-        // Version 2
-        // ...
-    }
-};
-
-CEREAL_REGISTER_TYPE(RawPlayer);
-CEREAL_CLASS_VERSION(RawPlayer, 1);
