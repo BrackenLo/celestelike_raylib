@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../engine/debug.hpp"
+#include "../engine/debug_x.hpp"
 #include "raylib.h"
 #include <optional>
 

@@ -5,7 +5,9 @@
 namespace celestelike {
 
 namespace render {
+    void start_render(entt::registry& reg, float dt);
     void render(entt::registry& reg, float dt);
+    void finish_render(entt::registry& reg, float dt);
 }
 
 namespace physics {
@@ -35,6 +37,11 @@ namespace player {
 namespace camera {
     void camera_follow(entt::registry& reg, float dt);
     void camera_update(entt::registry& reg, float dt);
+}
+
+namespace debug {
+    void run_debug_systems(entt::registry& reg, float dt);
+    void inspector_menu(entt::registry& reg, float dt);
 }
 
 }

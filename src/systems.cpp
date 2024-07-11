@@ -1,15 +1,22 @@
 #include "systems.hpp"
 
+#include "raygui.h"
 #include "raylib.h"
 #include "raymath.h"
 #include <cmath>
 
 #include "components.hpp"
+#include "debug.hpp"
 #include "helper.hpp"
 #include "player_resources.hpp"
 #include "resources.hpp"
 
 namespace celestelike {
+
+void render::start_render(entt::registry& reg, float dt)
+{
+    BeginDrawing();
+}
 
 void render::render(entt::registry& reg, float dt)
 {
@@ -18,8 +25,6 @@ void render::render(entt::registry& reg, float dt)
 
     entt::entity camera_entity = v_camera.front();
     Camera2D camera = camera_entity == entt::null ? default_camera() : v_camera.get<GameCamera>(camera_entity);
-
-    BeginDrawing();
 
     Color clear_color = reg.ctx().contains<ClearColor>() ? reg.ctx().get<ClearColor>() : RAYWHITE;
     ClearBackground(clear_color);
@@ -40,7 +45,10 @@ void render::render(entt::registry& reg, float dt)
     }
 
     EndMode2D();
+}
 
+void render::finish_render(entt::registry& reg, float dt)
+{
     EndDrawing();
 }
 
@@ -436,6 +444,62 @@ void camera::camera_update(entt::registry& reg, float dt)
                 GetScreenHeight() / 2.0f
             };
     }
+}
+
+void debug::run_debug_systems(entt::registry& reg, float dt)
+{
+    if (!reg.ctx().contains<DebugState>())
+        return;
+
+    DebugState& debug = reg.ctx().get<DebugState>();
+
+    if (IsKeyPressed(KEY_F1)) {
+        debug.active = !debug.active;
+        if (debug.active)
+            debug.resize();
+    }
+
+    if (IsKeyPressed(KEY_F2)) {
+        if (debug.state == MenuState::Inspector)
+            debug.active = !debug.active;
+        else {
+            debug.active = true;
+            debug.state = MenuState::Inspector;
+        }
+    }
+
+    if (!debug.active)
+        return;
+
+    if (IsWindowResized())
+        debug.resize();
+
+    switch (debug.state) {
+    case MenuState::Inspector:
+        inspector_menu(reg, dt);
+        return;
+    case MenuState::Main:
+        break;
+    }
+
+    GuiPanel(debug.rect, NULL);
+
+    if (GuiButton({ debug.rect.x + 24, debug.rect.y + 24, 240, 48 }, "Inspector")) {
+        debug.state = MenuState::Inspector;
+    }
+}
+
+void debug::inspector_menu(entt::registry& reg, float dt)
+{
+    DebugState& debug = reg.ctx().get<DebugState>();
+
+    if (GuiWindowBox(debug.rect, "Inspector"))
+        debug.state = MenuState::Main;
+
+    GuiLabel({ debug.rect.x + 24, debug.rect.y + 32, 96, 24 }, "Entities");
+
+    auto v_inspect = reg.view<DebugInspect>();
+    entt::entity val = v_inspect.begin()[4];
 }
 
 }

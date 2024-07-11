@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debug.hpp"
+#include "debug_x.hpp"
 #include "physics.hpp"
 #include "scene.hpp"
 

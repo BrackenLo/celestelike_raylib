@@ -1,5 +1,6 @@
 #include "scene.hpp"
 
+#include "debug.hpp"
 #include "helper.hpp"
 #include "player_resources.hpp"
 #include "raylib.h"
@@ -12,6 +13,8 @@ Scene::Scene() { }
 
 void Scene::init()
 {
+    tools::trace("Initializing scene");
+
     auto system_sort = [](System const& a, System const& b) {
         return a.priority < b.priority;
     };
@@ -19,6 +22,14 @@ void Scene::init()
     std::sort(update_systems.begin(), update_systems.end(), system_sort);
     std::sort(fixed_systems.begin(), fixed_systems.end(), system_sort);
     std::sort(render_systems.begin(), render_systems.end(), system_sort);
+
+    tools::trace("update order:");
+    for (const System& system : update_systems) {
+        // system.system
+    }
+
+    tools::trace("fixed order:");
+    tools::trace("render order:");
 }
 
 void Scene::update()
@@ -54,13 +65,14 @@ void Scene::update()
 
 void Scene::init_level_scene()
 {
-    tools::trace("init level");
+    tools::trace("Initializing level scene");
 
     // Add basic resources
     reg.ctx().emplace<Time>();
     reg.ctx().emplace<FixedTimestep>();
     reg.ctx().emplace<ClearColor>();
     reg.ctx().emplace<PlayerInput>();
+    reg.ctx().emplace<debug::DebugState>();
 
     // Init systems
     player::init_systems(reg);
@@ -90,11 +102,16 @@ void Scene::init_level_scene()
 
     add_fixed({ &update::pos_lerp, Order::Third });
 
-    add_fixed({ physics::apply_velocity_collision, Order::Fith });
+    add_fixed({ &physics::apply_velocity_collision, Order::Fith });
 
     // Render stuff
 
-    add_render({ render::render, Order::Fith });
+    add_render({ &render::start_render, Order::First });
+
+    add_render({ &render::render, Order::Third });
+    add_render({ &debug::run_debug_systems, Order::Fith - 1 });
+
+    add_render({ &render::finish_render, Order::Fith });
 }
 
 void Scene::load_level(save::SaveData data)

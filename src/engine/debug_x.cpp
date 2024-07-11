@@ -1,4 +1,4 @@
-#include "debug.hpp"
+#include "debug_x.hpp"
 
 #include "../defs.hpp"
 #include "../game/player.hpp"
