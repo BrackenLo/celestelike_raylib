@@ -75,11 +75,6 @@ namespace tools {
         TraceLog(TraceLogLevel::LOG_INFO, msg);
     }
 
-    void trace_fmt(const char* msg...)
-    {
-        TraceLog(TraceLogLevel::LOG_INFO, TextFormat(msg));
-    }
-
     bool are_keys_down(std::vector<int> keys)
     {
         for (int key : keys)

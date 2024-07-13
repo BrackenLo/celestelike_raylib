@@ -13,6 +13,7 @@
 #include <fstream>
 
 #include "raygui.h"
+#include "rlImGui.h"
 
 World::World() { }
 
@@ -23,7 +24,10 @@ World::~World()
 
 int World::run()
 {
-    InitWindow(800, 450, "celestelike");
+    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE); // TODO - Look into flags
+    InitWindow(1280, 800, "celestelike");
+
+    rlImGuiSetup(true);
 
     SetTraceLogLevel(TraceLogLevel::LOG_ALL);
     GuiLoadStyle("style_candy.rgs");
@@ -36,6 +40,8 @@ int World::run()
     while (!WindowShouldClose()) {
         scene.update();
     }
+
+    rlImGuiShutdown();
 
     TraceLog(TraceLogLevel::LOG_INFO, "Closing program");
     CloseWindow();

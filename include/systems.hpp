@@ -42,6 +42,7 @@ namespace camera {
 namespace debug {
     void run_debug_systems(entt::registry& reg, float dt);
     void inspector_menu(entt::registry& reg, float dt);
+    void physics_menu(entt::registry& reg, float dt);
 }
 
 }

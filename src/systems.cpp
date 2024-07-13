@@ -1,5 +1,6 @@
 #include "systems.hpp"
 
+#include "imgui.h"
 #include "raygui.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -10,12 +11,15 @@
 #include "helper.hpp"
 #include "player_resources.hpp"
 #include "resources.hpp"
+#include "rlImGui.h"
 
 namespace celestelike {
 
 void render::start_render(entt::registry& reg, float dt)
 {
     BeginDrawing();
+    rlImGuiBegin();
+    // ImGui::ShowDemoWindow();
 }
 
 void render::render(entt::registry& reg, float dt)
@@ -49,6 +53,7 @@ void render::render(entt::registry& reg, float dt)
 
 void render::finish_render(entt::registry& reg, float dt)
 {
+    rlImGuiEnd();
     EndDrawing();
 }
 
@@ -459,47 +464,68 @@ void debug::run_debug_systems(entt::registry& reg, float dt)
             debug.resize();
     }
 
-    if (IsKeyPressed(KEY_F2)) {
-        if (debug.state == MenuState::Inspector)
-            debug.active = !debug.active;
-        else {
-            debug.active = true;
-            debug.state = MenuState::Inspector;
-        }
-    }
-
     if (!debug.active)
         return;
 
     if (IsWindowResized())
         debug.resize();
 
-    switch (debug.state) {
-    case MenuState::Inspector:
+    ImGui::ShowDemoWindow();
+
+    const ImGuiWindowFlags window_flags = //
+        ImGuiWindowFlags_NoResize
+        | ImGuiWindowFlags_NoMove
+        | ImGuiWindowFlags_NoCollapse;
+
+    ImGui::SetNextWindowPos({ debug.x, debug.y });
+    ImGui::SetNextWindowSize({ debug.width, debug.height });
+    ImGui::Begin("My First Tool", NULL, window_flags);
+
+    float v;
+
+    ImGui::Text("Hello World");
+    ImGui::SliderFloat("float", &v, 0.0f, 1.0f);
+
+    if (ImGui::CollapsingHeader("Inspector")) {
         inspector_menu(reg, dt);
-        return;
-    case MenuState::Main:
-        break;
     }
 
-    GuiPanel(debug.rect, NULL);
-
-    if (GuiButton({ debug.rect.x + 24, debug.rect.y + 24, 240, 48 }, "Inspector")) {
-        debug.state = MenuState::Inspector;
+    if (ImGui::CollapsingHeader("Physics Menu")) {
+        physics_menu(reg, dt);
     }
+
+    ImGui::End();
 }
 
 void debug::inspector_menu(entt::registry& reg, float dt)
 {
-    DebugState& debug = reg.ctx().get<DebugState>();
+    // DebugState& debug = reg.ctx().get<DebugState>();
 
-    if (GuiWindowBox(debug.rect, "Inspector"))
-        debug.state = MenuState::Main;
-
-    GuiLabel({ debug.rect.x + 24, debug.rect.y + 32, 96, 24 }, "Entities");
+    ImGui::SeparatorText("Hello");
 
     auto v_inspect = reg.view<DebugInspect>();
     entt::entity val = v_inspect.begin()[4];
+}
+
+void debug::physics_menu(entt::registry& reg, float dt)
+{
+    const Time& time = reg.ctx().get<Time>();
+    FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
+
+    ImGui::SeparatorText("Update");
+    ImGui::Text("Elapsed: %f", time.elapsed);
+
+    ImGui::SeparatorText("Fixed Update");
+    ImGui::Text("Elapsed: %f", fixed.elapsed);
+    ImGui::Text("Accumulator: %f", fixed.accumulator);
+
+    float fixed_timestep = std::round(1.0f / fixed.timestep);
+
+    if (ImGui::SliderFloat("Timestep", &fixed_timestep, 10.0f, 100.0f)) {
+        // tools::trace(TextFormat("Updated %f", fixed_timestep));
+        fixed.timestep = 1.0f / fixed_timestep;
+    }
+    ImGui::Checkbox("Paused", &fixed.paused);
 }
 
 }

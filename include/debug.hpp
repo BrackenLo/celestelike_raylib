@@ -1,7 +1,5 @@
 #pragma once
 
-#include "raylib.h"
-
 namespace celestelike {
 
 namespace debug {
@@ -10,17 +8,13 @@ namespace debug {
         const char* name;
     };
 
-    enum class MenuState {
-        Main,
-        Inspector,
-    };
-
     struct DebugState {
         bool active;
-        MenuState state;
 
-        float menu_width;
-        Rectangle rect;
+        float x;
+        float y;
+        float width;
+        float height;
 
         DebugState();
         void resize();

@@ -1,5 +1,7 @@
 #include "debug.hpp"
 
+#include "raylib.h"
+
 namespace celestelike {
 
 namespace debug {
@@ -7,19 +9,18 @@ namespace debug {
     DebugState::DebugState()
     {
         active = false;
-        menu_width = 320;
+        width = 320;
     }
 
     void DebugState::resize()
     {
-        const float width = GetScreenWidth();
-        const float height = GetScreenHeight();
+        const float screen_width = GetScreenWidth();
+        const float screen_height = GetScreenHeight();
 
-        rect.width = menu_width;
-        rect.height = height;
+        height = screen_height;
 
-        rect.x = width - rect.width;
-        rect.y = 0;
+        x = screen_width - width;
+        y = 0;
     }
 }
 

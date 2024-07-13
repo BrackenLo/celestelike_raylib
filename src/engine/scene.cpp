@@ -22,14 +22,6 @@ void Scene::init()
     std::sort(update_systems.begin(), update_systems.end(), system_sort);
     std::sort(fixed_systems.begin(), fixed_systems.end(), system_sort);
     std::sort(render_systems.begin(), render_systems.end(), system_sort);
-
-    tools::trace("update order:");
-    for (const System& system : update_systems) {
-        // system.system
-    }
-
-    tools::trace("fixed order:");
-    tools::trace("render order:");
 }
 
 void Scene::update()
@@ -48,14 +40,15 @@ void Scene::update()
     if (!fixed.paused)
         fixed.accumulator += dt;
 
-    if (fixed.accumulator >= fixed.timestep) {
+    while (fixed.accumulator >= fixed.timestep) {
+        // if (fixed.accumulator >= fixed.timestep) {
         fixed.accumulator -= fixed.timestep;
         fixed.elapsed += fixed.timestep;
 
-        float dt = fixed.timestep;
+        float fixed_dt = fixed.timestep;
 
         for (System& system : fixed_systems)
-            system.system(reg, dt);
+            system.system(reg, fixed_dt);
     }
 
     // Do render stuff
@@ -123,7 +116,7 @@ void Scene::load_level(save::SaveData data)
         loaded_solids += 1;
     }
 
-    tools::trace_fmt("Loaded %d solids", loaded_solids);
+    tools::trace(TextFormat("Loaded %d solids", loaded_solids));
 
     spawn_player(reg, data.player);
     spawn_camera(reg);
