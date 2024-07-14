@@ -56,7 +56,7 @@ inline void EntityWidget(EntityType& e, entt::basic_registry<EntityType>& reg, b
 }
 
 template <class EntityType>
-inline void AltEntityWidget(EntityType& e, entt::basic_registry<EntityType>& reg, EntityType& selected, const char* name = NULL)
+inline void AltEntityWidget(EntityType& e, entt::basic_registry<EntityType>& reg, EntityType& selected)
 {
     int id = entt::to_integral(e);
     ImGui::PushID(static_cast<int>(id));
@@ -68,14 +68,16 @@ inline void AltEntityWidget(EntityType& e, entt::basic_registry<EntityType>& reg
     }
 
     bool entity_selected = (e == selected);
+    std::string display_name;
 
-    const char* display_name = (name != NULL) ? name
-                                              : std::string()
-                                                    .append("ID: ")
-                                                    .append(std::to_string(id))
-                                                    .c_str();
+    if (reg.template any_of<Name>(e))
+        display_name = (reg.template get<Name>(e).name);
+    else if (reg.orphan(e))
+        display_name.append("ORPHAN: ").append(std::to_string(id));
+    else
+        display_name.append("ID: ").append(std::to_string(id));
 
-    if (ImGui::Checkbox(display_name, &entity_selected)) {
+    if (ImGui::Checkbox(display_name.c_str(), &entity_selected)) {
         selected = e;
     }
 
@@ -268,6 +270,7 @@ public:
 
         if (comp_list.empty()) {
             ImGui::Text("Orphans:");
+
             for (EntityType e : registry.template storage<EntityType>()) {
                 if (registry.orphan(e)) {
                     MM_IEEE_ENTITY_WIDGET(e, registry, false);
@@ -295,7 +298,7 @@ public:
         }
     }
 
-    void renderAltEntityList(entt::registry& registry, std::set<ComponentTypeID>& comp_list, EntityType& selected)
+    void renderAltEntityList(Registry& registry, std::set<ComponentTypeID>& comp_list, EntityType& selected)
     {
         ImGui::Text("Components Filter:");
         ImGui::SameLine();
@@ -303,52 +306,68 @@ public:
             comp_list.clear();
         }
 
-        ImGui::Indent();
+        if (ImGui::TreeNode("Filter Components")) {
+            if (ImGui::BeginTable("Components", 2)) {
 
-        for (const auto& [component_type_id, ci] : component_infos) {
-            bool is_in_list = comp_list.count(component_type_id);
-            bool active = is_in_list;
+                for (const auto& [component_type_id, ci] : component_infos) {
+                    ImGui::TableNextColumn();
 
-            ImGui::Checkbox(ci.name.c_str(), &active);
+                    bool is_in_list = comp_list.count(component_type_id);
+                    bool active = is_in_list;
 
-            if (is_in_list && !active) { // remove
-                comp_list.erase(component_type_id);
-            } else if (!is_in_list && active) { // add
-                comp_list.emplace(component_type_id);
+                    ImGui::Checkbox(ci.name.c_str(), &active);
+
+                    if (is_in_list && !active) { // remove
+                        comp_list.erase(component_type_id);
+                    } else if (!is_in_list && active) { // add
+                        comp_list.emplace(component_type_id);
+                    }
+                }
+
+                ImGui::EndTable();
             }
+
+            ImGui::TreePop();
         }
 
-        ImGui::Unindent();
-        ImGui::Separator();
+        if (ImGui::TreeNodeEx("Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
 
-        if (comp_list.empty()) {
-            ImGui::Text("Orphans:");
-            for (EntityType e : registry.template storage<EntityType>()) {
-                if (registry.orphan(e)) {
-                    AltEntityWidget(e, registry, selected);
-                }
-            }
-        } else {
-            entt::basic_runtime_view<entt::basic_sparse_set<EntityType>> view {};
+            if (comp_list.empty()) {
+                ImGui::Text("All:");
 
-            for (const auto type : comp_list) {
-                auto* storage_ptr = registry.storage(type);
-                if (storage_ptr != nullptr) {
-                    view.iterate(*storage_ptr);
+                if (ImGui::BeginTable("Entities", 3)) {
+                    for (EntityType e : registry.template storage<EntityType>()) {
+                        ImGui::TableNextColumn();
+                        AltEntityWidget(e, registry, selected);
+                    }
+                    ImGui::EndTable();
                 }
             }
 
-            // TODO: add support for exclude
-            ImGui::Text("%lu Entities Matching:", view.size_hint());
+            else {
+                entt::basic_runtime_view<entt::basic_sparse_set<EntityType>> view {};
 
-            for (EntityType e : view) {
-                if (registry.any_of<Name>(e)) {
-                    const Name& name = registry.get<Name>(e);
-                    AltEntityWidget(e, registry, selected, name.name.c_str());
-                } else {
-                    AltEntityWidget(e, registry, selected);
+                for (const auto type : comp_list) {
+                    auto* storage_ptr = registry.storage(type);
+                    if (storage_ptr != nullptr) {
+                        view.iterate(*storage_ptr);
+                    }
+                }
+
+                // TODO: add support for exclude
+                ImGui::Text("%lu Entities Matching:", view.size_hint());
+
+                if (ImGui::BeginTable("Entities", 3)) {
+                    for (EntityType e : view) {
+                        ImGui::TableNextColumn();
+                        AltEntityWidget(e, registry, selected);
+                    }
+
+                    ImGui::EndTable();
                 }
             }
+
+            ImGui::TreePop();
         }
     }
 

@@ -45,6 +45,8 @@ entt::entity spawn_camera(entt::registry& reg)
 {
     entt::entity entity = reg.create();
 
+    reg.emplace<MM::Name>(entity, "Camera");
+
     reg.emplace<Pos>(entity, 0, 0);
     reg.emplace<PosLerp>(entity, 0, 0, 4.f, 4.f);
     reg.emplace<GameCamera>(entity);

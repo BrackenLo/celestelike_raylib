@@ -479,12 +479,7 @@ void debug::run_debug_systems(entt::registry& reg, float dt)
 
     ImGui::SetNextWindowPos({ debug.x, debug.y });
     ImGui::SetNextWindowSize({ debug.width, debug.height });
-    ImGui::Begin("My First Tool", NULL, window_flags);
-
-    float v;
-
-    ImGui::Text("Hello World");
-    ImGui::SliderFloat("float", &v, 0.0f, 1.0f);
+    ImGui::Begin("Welcome to debug", NULL, window_flags);
 
     if (ImGui::CollapsingHeader("Inspector")) {
         inspector_menu(reg, dt);
@@ -503,7 +498,6 @@ void debug::inspector_menu(entt::registry& reg, float dt)
 
     ImGui::SeparatorText("Entities");
 
-    // debug.inspector.renderEntityList(reg, debug.comp_list);
     debug.inspector.renderAltEntityList(reg, debug.comp_list, debug.highlight_entity);
 
     ImGui::SeparatorText("Editor");
