@@ -1,5 +1,7 @@
 #pragma once
 
+#include "imgui_entt_entity_editor.hpp"
+
 namespace celestelike {
 
 namespace debug {
@@ -16,7 +18,12 @@ namespace debug {
         float width;
         float height;
 
+        MM::EntityEditor<entt::entity> inspector;
+        std::set<entt::id_type> comp_list;
+        entt::entity highlight_entity;
+
         DebugState();
+        void init();
         void resize();
     };
 

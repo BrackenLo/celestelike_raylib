@@ -1,6 +1,20 @@
 #include "debug.hpp"
 
+#include "components.hpp"
+#include "imgui.h"
 #include "raylib.h"
+
+namespace MM {
+
+template <>
+void ComponentEditorWidget<celestelike::Pos>(entt::registry& reg, entt::registry::entity_type e)
+{
+    auto& val = reg.get<celestelike::Pos>(e);
+    ImGui::DragInt("x", &val.x);
+    ImGui::DragInt("y", &val.y);
+}
+
+}
 
 namespace celestelike {
 
@@ -10,6 +24,11 @@ namespace debug {
     {
         active = false;
         width = 320;
+    }
+
+    void DebugState::init()
+    {
+        inspector.registerComponent<Pos>("Pos");
     }
 
     void DebugState::resize()

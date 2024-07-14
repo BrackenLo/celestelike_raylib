@@ -499,12 +499,18 @@ void debug::run_debug_systems(entt::registry& reg, float dt)
 
 void debug::inspector_menu(entt::registry& reg, float dt)
 {
-    // DebugState& debug = reg.ctx().get<DebugState>();
+    DebugState& debug = reg.ctx().get<DebugState>();
 
-    ImGui::SeparatorText("Hello");
+    ImGui::SeparatorText("Entities");
 
-    auto v_inspect = reg.view<DebugInspect>();
-    entt::entity val = v_inspect.begin()[4];
+    // debug.inspector.renderEntityList(reg, debug.comp_list);
+    debug.inspector.renderAltEntityList(reg, debug.comp_list, debug.highlight_entity);
+
+    ImGui::SeparatorText("Editor");
+
+    debug.inspector.renderEditor(reg, debug.highlight_entity);
+
+    ImGui::NewLine();
 }
 
 void debug::physics_menu(entt::registry& reg, float dt)
@@ -520,9 +526,7 @@ void debug::physics_menu(entt::registry& reg, float dt)
     ImGui::Text("Accumulator: %f", fixed.accumulator);
 
     float fixed_timestep = std::round(1.0f / fixed.timestep);
-
     if (ImGui::SliderFloat("Timestep", &fixed_timestep, 10.0f, 100.0f)) {
-        // tools::trace(TextFormat("Updated %f", fixed_timestep));
         fixed.timestep = 1.0f / fixed_timestep;
     }
     ImGui::Checkbox("Paused", &fixed.paused);

@@ -1,6 +1,7 @@
 #include "factory.hpp"
 
 #include "components.hpp"
+#include "imgui_entt_entity_editor.hpp"
 
 namespace celestelike {
 
@@ -16,6 +17,8 @@ entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc)
     entt::entity entity = reg.create();
 
     Bounds bounds = { 25, 32 };
+
+    reg.emplace<MM::Name>(entity, "Player");
 
     reg.emplace<Pos>(entity, desc.x, desc.y);
     reg.emplace<CollisionBounds>(entity, bounds);

@@ -13,9 +13,13 @@ target("celestelike_raylib")
   add_packages("imgui", "raygui")  
 
   -- Imgui Raylib Package
-  add_includedirs("external/rl-imgui")
-  add_files("external/rl-imgui/rlImGui.cpp")
+  add_includedirs("external/rl_imgui")
+  add_files("external/rl_imgui/rlImGui.cpp")
 
+  -- Imgui entt entity editor
+  add_includedirs("external/imgui_entt_entity_editor")
+
+  -- This project
   add_includedirs("include")
   add_includedirs("include/engine")
   add_includedirs("include/game")

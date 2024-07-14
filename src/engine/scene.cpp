@@ -65,7 +65,7 @@ void Scene::init_level_scene()
     reg.ctx().emplace<FixedTimestep>();
     reg.ctx().emplace<ClearColor>();
     reg.ctx().emplace<PlayerInput>();
-    reg.ctx().emplace<debug::DebugState>();
+    reg.ctx().emplace<debug::DebugState>().init();
 
     // Init systems
     player::init_systems(reg);
