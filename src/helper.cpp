@@ -29,6 +29,29 @@ namespace render {
 }
 
 namespace physics {
+    bool check_collision_auto(entt::registry& reg, const entt::entity entity)
+    {
+        auto v_to_check = reg.view<Actor, CollisionBounds, Pos>(entt::exclude<Solid>);
+        auto v_solid = reg.view<Solid, CollisionBounds, Pos>();
+
+        if (!v_to_check.contains(entity))
+            return false;
+
+        const CollisionBounds& bounds = v_to_check.get<CollisionBounds>(entity);
+        const Pos& pos = v_to_check.get<Pos>(entity);
+
+        for (entt::entity solid : v_solid) {
+            const Pos& solid_pos = v_solid.get<Pos>(solid);
+            const CollisionBounds& solid_bounds = v_solid.get<CollisionBounds>(solid);
+
+            if (check_collision(pos, bounds, solid_pos, solid_bounds)) {
+                return true;
+            }
+        }
+
+        return true;
+    }
+
     bool check_collision(const Pos pos1, const Bounds bounds1, const Pos pos2, const Bounds bounds2)
     {
         const int e1_x1 = pos1.x - bounds1.half_width;

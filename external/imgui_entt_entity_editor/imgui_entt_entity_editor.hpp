@@ -336,7 +336,7 @@ public:
                 ImGui::Text("All:");
 
                 if (ImGui::BeginTable("Entities", 3)) {
-                    for (EntityType e : registry.template storage<EntityType>()) {
+                    for (EntityType e : registry.template view<entt::entity>()) {
                         ImGui::TableNextColumn();
                         AltEntityWidget(e, registry, selected);
                     }

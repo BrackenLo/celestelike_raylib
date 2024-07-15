@@ -1,6 +1,7 @@
 #pragma once
 
 #include "components.hpp"
+#include "entt/entt.hpp"
 #include <cmath>
 #include <vector>
 
@@ -13,6 +14,7 @@ namespace render {
 }
 
 namespace physics {
+    bool check_collision_auto(entt::registry& reg, const entt::entity entity);
     bool check_collision(const Pos pos1, const Bounds bounds1, const Pos pos2, const Bounds bounds2);
     int get_collision_depth(const int pos1, const int size1, const int pos2, const int size2);
     int get_collision_depth_x(const Pos& pos1, const Bounds& bounds1, const Pos& pos2, const Bounds& bounds2);

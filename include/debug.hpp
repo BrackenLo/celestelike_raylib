@@ -11,12 +11,15 @@ namespace debug {
     };
 
     struct DebugState {
-        bool active;
+        bool menu_active;
 
         float x;
         float y;
         float width;
         float height;
+
+        bool level_editor_active;
+        bool level_grid_active;
 
         MM::EntityEditor<entt::entity> inspector;
         std::set<entt::id_type> comp_list;

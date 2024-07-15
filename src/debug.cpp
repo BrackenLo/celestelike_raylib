@@ -38,6 +38,17 @@ void ComponentEditorWidget<celestelike::Jump>(entt::registry& reg, entt::registr
 {
     auto& val = reg.get<celestelike::Jump>(e);
     ImGui::DragInt("impulse", &val.impulse);
+
+    ImGui::DragFloat("coyote_time", &val.coyote_time);
+    ImGui::DragFloat("jump_buffer", &val.jump_buffer);
+    ImGui::DragFloat("fall_multiplier", &val.fall_multiplier);
+
+    ImGui::BeginDisabled(true);
+    ImGui::Checkbox("coyote_usable", &val.coyote_usable);
+    ImGui::Checkbox("buffered_jump_usable", &val.buffered_jump_usable);
+    ImGui::Checkbox("ended_early", &val.ended_early);
+    ImGui::EndDisabled();
+    ImGui::Text("time_left_ground: %f", val.time_left_ground);
 }
 
 template <>
@@ -127,8 +138,10 @@ namespace debug {
 
     DebugState::DebugState()
     {
-        active = false;
-        width = 320;
+        menu_active = false;
+        width = 400;
+        level_editor_active = false;
+        level_grid_active = true;
     }
 
     void DebugState::init()

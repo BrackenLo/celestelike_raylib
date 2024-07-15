@@ -8,6 +8,8 @@
 
 #include "components.hpp"
 #include "debug.hpp"
+#include "defs.hpp"
+#include "factory.hpp"
 #include "helper.hpp"
 #include "player_resources.hpp"
 #include "resources.hpp"
@@ -459,12 +461,15 @@ void debug::run_debug_systems(entt::registry& reg, float dt)
     DebugState& debug = reg.ctx().get<DebugState>();
 
     if (IsKeyPressed(KEY_F1)) {
-        debug.active = !debug.active;
-        if (debug.active)
+        debug.menu_active = !debug.menu_active;
+        if (debug.menu_active)
             debug.resize();
     }
 
-    if (!debug.active)
+    if (debug.level_editor_active)
+        level_editor(reg, dt);
+
+    if (!debug.menu_active)
         return;
 
     if (IsWindowResized())
@@ -487,6 +492,10 @@ void debug::run_debug_systems(entt::registry& reg, float dt)
 
     if (ImGui::CollapsingHeader("Physics Menu")) {
         physics_menu(reg, dt);
+    }
+
+    if (ImGui::CollapsingHeader("Level Menu")) {
+        level_menu(reg, dt);
     }
 
     ImGui::End();
@@ -526,4 +535,116 @@ void debug::physics_menu(entt::registry& reg, float dt)
     ImGui::Checkbox("Paused", &fixed.paused);
 }
 
+void debug::level_menu(entt::registry& reg, float dt)
+{
+    DebugState& debug = reg.ctx().get<DebugState>();
+
+    ImGui::Checkbox("Enable editor", &debug.level_editor_active);
+    if (debug.level_editor_active && ImGui::TreeNode("Level editor")) {
+        ImGui::Checkbox("Toggle Grid", &debug.level_grid_active);
+
+        ImGui::TreePop();
+    }
+
+    ImGui::Separator();
+}
+
+void debug::level_editor(entt::registry& reg, float dt)
+{
+    DebugState& debug = reg.ctx().get<DebugState>();
+
+    // Get current camera
+    auto v_camera = reg.view<GameCamera>();
+    entt::entity camera_entity = v_camera.front();
+    Camera2D camera = camera_entity == entt::null ? default_camera() : v_camera.get<GameCamera>(camera_entity);
+    BeginMode2D(camera);
+
+    // Vector2 world_mouse_pos = GetMousePosition();
+    Vector2 world_mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
+    int snapped_mouse_x = tools::round_to(world_mouse_pos.x, TILE_WIDTH);
+    int snapped_mouse_y = tools::round_to(world_mouse_pos.y, TILE_HEIGHT);
+
+    DrawRectangle(
+        snapped_mouse_x,
+        snapped_mouse_y,
+        TILE_WIDTH,
+        TILE_HEIGHT,
+        Fade(BLUE, 0.4));
+
+    // Spawn Tiles
+    const Rectangle menu_rect = { debug.x, debug.y, debug.width, debug.height };
+    bool mouse_pos_valid = !debug.menu_active || !CheckCollisionPointRec(GetMousePosition(), menu_rect);
+
+    bool mouse_left = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    bool mouse_right = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+
+    if (mouse_pos_valid && (mouse_left || mouse_right)) {
+        const int half_width = TILE_WIDTH / 2;
+        const int half_height = TILE_HEIGHT / 2;
+
+        Pos pos { snapped_mouse_x + half_width, snapped_mouse_y + half_height };
+        Bounds bounds { half_width, half_height };
+
+        auto v_solid = reg.view<Solid, CollisionBounds, Pos>();
+
+        bool already_valid = false;
+
+        for (entt::entity solid : v_solid) {
+            const Pos& solid_pos = v_solid.get<Pos>(solid);
+            const Bounds& solid_bounds = v_solid.get<CollisionBounds>(solid);
+
+            if (!physics::check_collision(pos, bounds, solid_pos, solid_bounds))
+                continue;
+
+            if (
+                !mouse_right
+                && pos.x == solid_pos.x
+                && pos.y == solid_pos.y
+                && bounds.half_width == solid_bounds.half_width
+                && bounds.half_height == solid_bounds.half_height //
+            ) {
+                // They're the same thing
+                already_valid = true;
+            } else {
+                reg.destroy(solid);
+            }
+        }
+
+        if (!already_valid && mouse_left) {
+            spawn_tile(reg, { pos.x, pos.y, half_width, half_height });
+        }
+    }
+
+    // Draw Grid
+    if (debug.level_grid_active) {
+        Vector2 pos = GetScreenToWorld2D({ 0, 0 }, camera);
+
+        int origin_x = tools::round_to(pos.x, TILE_WIDTH);
+        int origin_y = tools::round_to(pos.y, TILE_HEIGHT);
+
+        int width = GetScreenWidth() + 200;
+        int height = GetScreenHeight() + 200;
+
+        int end_x = origin_x + width;
+        int end_y = origin_y + height;
+
+        int x_amount = width / TILE_WIDTH;
+        int y_amount = height / TILE_HEIGHT;
+
+        for (int x = 0; x < x_amount; x++) {
+            int start_x = origin_x + TILE_WIDTH * x;
+            DrawLine(start_x, origin_y, start_x, end_y, BLACK);
+        }
+
+        for (int y = 0; y < y_amount; y++) {
+            int start_y = origin_y + TILE_HEIGHT * y;
+            DrawLine(origin_x, start_y, end_x, start_y, BLACK);
+        }
+
+        DrawLineEx({ -999, 0 }, { 999, 0 }, 3, RED);
+        DrawLineEx({ 0, -999 }, { 0, 999 }, 3, RED);
+    }
+
+    EndMode2D();
+}
 }
