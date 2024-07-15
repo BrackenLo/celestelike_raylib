@@ -1,19 +1,17 @@
 #include "systems.hpp"
 
-#include "imgui.h"
-#include "raygui.h"
-#include "raylib.h"
-#include "raymath.h"
-#include "rlImGui.h"
 #include <cmath>
 #include <cstdio>
+#include <imgui.h>
+#include <raylib.h>
+#include <raymath.h>
+#include <rlImGui.h>
 
 #include "components.hpp"
 #include "debug.hpp"
 #include "defs.hpp"
 #include "factory.hpp"
 #include "helper.hpp"
-#include "player_resources.hpp"
 #include "resources.hpp"
 #include "save.hpp"
 
@@ -23,7 +21,6 @@ void render::start_render(entt::registry& reg, float dt)
 {
     BeginDrawing();
     rlImGuiBegin();
-    // ImGui::ShowDemoWindow();
 }
 
 void render::render(entt::registry& reg, float dt)

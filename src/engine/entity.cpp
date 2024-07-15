@@ -50,11 +50,4 @@ Rectangle Actor::get_rect()
     };
 }
 
-void Actor::get_properties(std::vector<DebugProperty>* properties)
-{
-    properties->push_back({ "position", &pos, true, -99999999.0f, 99999999.0f });
-    properties->push_back({ "half_width", &half_width, true, -99999999.0f, 99999999.0f });
-    properties->push_back({ "half_height", &half_height, true, -99999999.0f, 99999999.0f });
-}
-
 //====================================================================

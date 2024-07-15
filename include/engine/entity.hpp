@@ -1,6 +1,5 @@
 #pragma once
 
-#include "debug_x.hpp"
 #include "raylib.h"
 
 //====================================================================
@@ -37,15 +36,11 @@ public:
 //====================================================================
 // Actor class
 
-class Actor : public CollisionEntity, public IDebug {
+class Actor : public CollisionEntity {
     using CollisionEntity::CollisionEntity;
 
 public:
     Rectangle get_rect();
-
-public:
-    virtual inline const char* get_name() override { return "actor"; }
-    virtual void get_properties(std::vector<DebugProperty>* properties) override;
 };
 
 //====================================================================

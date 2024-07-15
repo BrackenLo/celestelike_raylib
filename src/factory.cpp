@@ -1,7 +1,8 @@
 #include "factory.hpp"
 
+#include <imgui_entt_entity_editor.hpp>
+
 #include "components.hpp"
-#include "imgui_entt_entity_editor.hpp"
 
 namespace celestelike {
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../engine/debug_x.hpp"
 #include "raylib.h"
 #include <optional>
 
@@ -15,7 +14,7 @@ enum class PlayerType {
 
 //====================================================================
 
-class PlayerInner : public IDebug {
+class PlayerInner {
 public:
     friend class Player;
 
@@ -79,11 +78,6 @@ protected:
     float jump_gravity;
     float fall_gravity;
     float variable_jump_gravity;
-
-public:
-    // IDebug functionality
-    virtual const char* get_name() override { return "player_inner"; }
-    virtual void get_properties(std::vector<DebugProperty>* properties) override;
 };
 
 //====================================================================

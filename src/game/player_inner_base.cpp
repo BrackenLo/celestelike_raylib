@@ -1,7 +1,5 @@
 #include "player_inner_base.hpp"
 
-#include "../engine/physics.hpp"
-#include "../engine/world.hpp"
 #include "helper.hpp"
 #include "player.hpp"
 #include "raymath.h"
@@ -142,21 +140,21 @@ void PlayerInner::do_jump(World* world, float dt)
 
 std::optional<int> PlayerInner::check_wall_jump(World* world, float dt)
 {
-    CollisionEntity to_check = CollisionEntity(outer->pos, outer->half_width + 4, outer->half_height + 4); // TEST
-    std::vector<Collision> collisions = world->check_collision(&to_check);
+    // CollisionEntity to_check = CollisionEntity(outer->pos, outer->half_width + 4, outer->half_height + 4); // TEST
+    // std::vector<Collision> collisions = world->check_collision(&to_check);
 
-    bool left_collision = false;
-    bool right_collision = false;
+    // bool left_collision = false;
+    // bool right_collision = false;
 
-    for (Collision collision : collisions) {
-        if (collision.normal.x == 1.0f)
-            left_collision = true;
-        if (collision.normal.x == -1.0f)
-            right_collision = true;
-    }
+    // for (Collision collision : collisions) {
+    //     if (collision.normal.x == 1.0f)
+    //         left_collision = true;
+    //     if (collision.normal.x == -1.0f)
+    //         right_collision = true;
+    // }
 
-    if (left_collision || right_collision)
-        return std::optional(right_collision - left_collision);
+    // if (left_collision || right_collision)
+    //     return std::optional(right_collision - left_collision);
 
     return std::nullopt;
 }
@@ -225,19 +223,6 @@ float PlayerInner::get_gravity(World* world)
 
     // Falling Gravity
     return fall_gravity;
-}
-
-void PlayerInner::get_properties(std::vector<DebugProperty>* properties)
-{
-    properties->push_back({ "accel", &accel, true, 0, 99999 });
-    properties->push_back({ "deaccel", &deaccel, true, 0, 99999 });
-    properties->push_back({ "max_velocity_x", &max_velocity_x, true, 0, 99999 });
-    properties->push_back({ "max_fall_speed", &max_fall_speed, true, 0, 99999 });
-
-    properties->push_back({ "jump_impulse", &jump_impulse, true, -9999, 0 });
-    properties->push_back({ "jump_gravity", &jump_gravity, false });
-    properties->push_back({ "fall_gravity", &fall_gravity, false });
-    properties->push_back({ "total_jumps", &total_jumps, true });
 }
 
 //====================================================================

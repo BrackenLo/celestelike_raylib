@@ -77,9 +77,4 @@ protected:
     std::vector<int> key_ability_3 = { KEY_Z };
 
     float switch_character_cooldown_size = 0.4f;
-
-public:
-    // IDebug functionality
-    virtual const char* get_name() override;
-    virtual void get_properties(std::vector<DebugProperty>* properties) override;
 };

@@ -1,9 +1,10 @@
 #pragma once
 
-#include "components.hpp"
-#include "entt/entt.hpp"
 #include <cmath>
+#include <entt/entt.hpp>
 #include <vector>
+
+#include "components.hpp"
 
 namespace celestelike {
 

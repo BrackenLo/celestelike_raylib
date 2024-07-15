@@ -2,8 +2,6 @@
 
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
-
-#include "entt/entity/fwd.hpp"
 #include <string>
 #include <vector>
 

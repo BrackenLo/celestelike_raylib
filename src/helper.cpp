@@ -1,8 +1,8 @@
 #include "helper.hpp"
 
-#include "raylib.h"
 #include <cmath>
 #include <cstdlib>
+#include <raylib.h>
 
 namespace celestelike {
 

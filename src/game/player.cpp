@@ -1,12 +1,12 @@
 #include "player.hpp"
 
-#include "../engine/world.hpp"
-#include "helper.hpp"
-#include "player_inner_characters.hpp"
-#include "raymath.h"
 #include <cmath>
 #include <memory>
 #include <raylib.h>
+#include <raymath.h>
+
+#include "helper.hpp"
+#include "player_inner_characters.hpp"
 
 //====================================================================
 
@@ -180,19 +180,19 @@ void Player::resolve_collisions(World* world, float dt)
         float left_nudge = 0.0f;
         float right_nudge = 0.0f;
 
-        for (CollisionEntity* solid : world->check_overlap(this)) {
-            float dx = pos.x - solid->pos.x;
-            float px = (half_width + solid->half_width) - std::abs(dx);
-            float sx = std::copysign(1.0f, dx);
-            float depth = px * sx;
+        // for (CollisionEntity* solid : world->check_overlap(this)) {
+        //     float dx = pos.x - solid->pos.x;
+        //     float px = (half_width + solid->half_width) - std::abs(dx);
+        //     float sx = std::copysign(1.0f, dx);
+        //     float depth = px * sx;
 
-            // Colliding from the right
-            if (depth > 0)
-                right_nudge = fmax(right_nudge, depth);
-            // Colliding from the left
-            else
-                left_nudge = fmin(left_nudge, depth);
-        }
+        //     // Colliding from the right
+        //     if (depth > 0)
+        //         right_nudge = fmax(right_nudge, depth);
+        //     // Colliding from the left
+        //     else
+        //         left_nudge = fmin(left_nudge, depth);
+        // }
 
         bool hit_left = left_nudge != 0.0f;
         bool hit_right = right_nudge != 0.0f;
@@ -211,20 +211,20 @@ void Player::resolve_collisions(World* world, float dt)
         float up_nudge = 0.0f;
         float down_nudge = 0.0f;
 
-        for (CollisionEntity* solid : world->check_overlap(this)) {
-            float dy = pos.y - solid->pos.y;
-            float py = (half_height + solid->half_height) - std::abs(dy);
-            float sy = std::copysign(1.0f, dy);
-            float depth = py * sy;
+        // for (CollisionEntity* solid : world->check_overlap(this)) {
+        //     float dy = pos.y - solid->pos.y;
+        //     float py = (half_height + solid->half_height) - std::abs(dy);
+        //     float sy = std::copysign(1.0f, dy);
+        //     float depth = py * sy;
 
-            // Colliding from below
-            if (depth > 0)
-                down_nudge = fmax(down_nudge, depth);
+        //     // Colliding from below
+        //     if (depth > 0)
+        //         down_nudge = fmax(down_nudge, depth);
 
-            // Colliding from the top
-            else
-                up_nudge = fmin(up_nudge, depth);
-        }
+        //     // Colliding from the top
+        //     else
+        //         up_nudge = fmin(up_nudge, depth);
+        // }
 
         bool hit_top = up_nudge != 0.0f;
         bool hit_bottom = down_nudge != 0.0f;
@@ -263,22 +263,6 @@ void Player::resolve_collisions(World* world, float dt)
 void Player::render(World* world)
 {
     inner->render(world);
-}
-
-//====================================================================
-
-const char* Player::get_name() { return "player"; }
-
-void Player::get_properties(std::vector<DebugProperty>* properties)
-{
-    Actor::get_properties(properties);
-
-    properties->push_back({ "input_dir", &input_dir, false });
-    properties->push_back({ "jump_held", &jump_held, false });
-
-    properties->push_back({ "velocity", &velocity, false });
-
-    inner->get_properties(properties);
 }
 
 //====================================================================

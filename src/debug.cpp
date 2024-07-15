@@ -1,9 +1,10 @@
 #include "debug.hpp"
 
+#include <imgui.h>
+#include <imgui_stdlib.h>
+#include <raylib.h>
+
 #include "components.hpp"
-#include "imgui.h"
-#include "imgui_stdlib.h"
-#include "raylib.h"
 #include "save.hpp"
 
 namespace MM {
