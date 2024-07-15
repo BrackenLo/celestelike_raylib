@@ -4,7 +4,9 @@
 #include "raygui.h"
 #include "raylib.h"
 #include "raymath.h"
+#include "rlImGui.h"
 #include <cmath>
+#include <cstdio>
 
 #include "components.hpp"
 #include "debug.hpp"
@@ -13,7 +15,7 @@
 #include "helper.hpp"
 #include "player_resources.hpp"
 #include "resources.hpp"
-#include "rlImGui.h"
+#include "save.hpp"
 
 namespace celestelike {
 
@@ -466,6 +468,10 @@ void debug::run_debug_systems(entt::registry& reg, float dt)
             debug.resize();
     }
 
+    if (IsKeyPressed(KEY_F2)) {
+        debug.level_editor_active = !debug.level_editor_active;
+    }
+
     if (debug.level_editor_active)
         level_editor(reg, dt);
 
@@ -535,13 +541,60 @@ void debug::physics_menu(entt::registry& reg, float dt)
     ImGui::Checkbox("Paused", &fixed.paused);
 }
 
+void reload_level_options(debug::DebugState& debug)
+{
+    debug.levels = save::get_levels();
+    debug.selected_level = -1;
+}
+
 void debug::level_menu(entt::registry& reg, float dt)
 {
     DebugState& debug = reg.ctx().get<DebugState>();
 
-    ImGui::Checkbox("Enable editor", &debug.level_editor_active);
-    if (debug.level_editor_active && ImGui::TreeNode("Level editor")) {
+    if (ImGui::TreeNode("Level editor")) {
+        ImGui::Checkbox("Enable editor", &debug.level_editor_active);
         ImGui::Checkbox("Toggle Grid", &debug.level_grid_active);
+
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Level Save/Load")) {
+        ImGui::SeparatorText("Loading");
+        if (ImGui::Button("Refresh Levels")) {
+            reload_level_options(debug);
+        }
+
+        for (int x = 0; x < debug.levels.size(); x++) {
+            ImGui::RadioButton(debug.levels[x], &debug.selected_level, x);
+        }
+
+        if (debug.selected_level >= 0 && debug.selected_level <= debug.levels.size()) {
+
+            if (ImGui::Button("Load Level")) {
+                save::load_level(debug.levels[debug.selected_level], reg);
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Delete Level")) {
+                std::remove(debug.levels[debug.selected_level]);
+                reload_level_options(debug);
+            }
+        }
+
+        ImGui::SeparatorText("Saving");
+        ImGui::InputText("Level name", debug.save_level_name, 128);
+
+        if (ImGui::Button("Save Level")) {
+            std::string name(debug.save_level_name);
+            name.erase(
+                std::remove_if(name.begin(), name.end(), ::isspace),
+                name.end());
+
+            if (!name.empty()) {
+                save::save_level(name.c_str(), reg);
+                reload_level_options(debug);
+            }
+        }
 
         ImGui::TreePop();
     }

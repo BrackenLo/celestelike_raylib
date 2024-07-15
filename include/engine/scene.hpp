@@ -1,7 +1,6 @@
 #pragma once
 
 #include "entt/entt.hpp"
-#include "save.hpp"
 #include <vector>
 
 namespace celestelike {
@@ -28,9 +27,8 @@ public:
     void init();
     void update();
 
+    void init_level_register();
     void init_level_scene();
-    void load_level(save::SaveData data);
-    save::SaveData save_level();
 
 protected:
     entt::registry reg;

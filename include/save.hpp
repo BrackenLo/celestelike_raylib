@@ -1,6 +1,8 @@
 #pragma once
 
-#include "cereal/cereal.hpp"
+#include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
+
 #include "entt/entity/fwd.hpp"
 #include <string>
 #include <vector>
@@ -11,14 +13,32 @@ namespace celestelike {
 
 namespace save {
 
-    struct Tile {
+    struct SaveTile {
         TileDescriptor desc;
         operator const TileDescriptor&() const { return desc; }
+
+        template <class Archive>
+        void serialize(Archive& archive)
+        {
+            archive(
+                cereal::make_nvp("x", desc.x),
+                cereal::make_nvp("y", desc.y),
+                cereal::make_nvp("width", desc.half_width),
+                cereal::make_nvp("height", desc.half_height));
+        }
     };
 
-    struct Player {
+    struct SavePlayer {
         PlayerDescriptor desc;
         operator const PlayerDescriptor&() const { return desc; }
+
+        template <class Archive>
+        void serialize(Archive& archive)
+        {
+            archive(
+                cereal::make_nvp("x", desc.x),
+                cereal::make_nvp("y", desc.y));
+        }
     };
 
     //----------------------------------------------
@@ -30,13 +50,12 @@ namespace save {
 
     public:
         std::string version;
-        std::vector<Tile> tiles;
-        Player player;
+        std::vector<SaveTile> tiles;
+        SavePlayer player;
 
     public:
         template <class Archive>
-        void
-        serialize(Archive& archive)
+        void serialize(Archive& archive)
         {
             archive(
                 cereal::make_nvp("version", version),
@@ -46,6 +65,11 @@ namespace save {
             );
         }
     };
+
+    std::vector<const char*> get_levels();
+    bool save_level(const char* level_name, entt::registry& reg);
+    bool load_level(const char* level_file_name, entt::registry& reg);
+
 }
 
 }

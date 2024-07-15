@@ -1,10 +1,13 @@
 #include "scene.hpp"
 
+#include <raylib.h>
+
 #include "debug.hpp"
+#include "factory.hpp"
 #include "helper.hpp"
 #include "player_resources.hpp"
-#include "raylib.h"
 #include "resources.hpp"
+#include "save.hpp"
 #include "systems.hpp"
 
 namespace celestelike {
@@ -41,7 +44,6 @@ void Scene::update()
         fixed.accumulator += dt;
 
     while (fixed.accumulator >= fixed.timestep) {
-        // if (fixed.accumulator >= fixed.timestep) {
         fixed.accumulator -= fixed.timestep;
         fixed.elapsed += fixed.timestep;
 
@@ -56,10 +58,11 @@ void Scene::update()
         system.system(reg, dt);
 }
 
-void Scene::init_level_scene()
+void Scene::init_level_register()
 {
-    tools::trace("Initializing level scene");
+    tools::trace("Initializing level register");
 
+    //----------------------------------------------
     // Add basic resources
     reg.ctx().emplace<Time>();
     reg.ctx().emplace<FixedTimestep>();
@@ -70,13 +73,7 @@ void Scene::init_level_scene()
     // Init systems
     player::init_systems(reg);
 
-    // Spawn level stuff
-    spawn_player(reg);
-    spawn_camera(reg);
-
-    spawn_tile(reg, { 100, 0 });
-    spawn_tile(reg, { 0, 100, 1000, 25 });
-
+    //----------------------------------------------
     // Update stuff
     add_update({ &player::update_input, Order::First });
 
@@ -98,7 +95,6 @@ void Scene::init_level_scene()
     add_fixed({ &physics::apply_velocity_collision, Order::Fith });
 
     // Render stuff
-
     add_render({ &render::start_render, Order::First });
 
     add_render({ &render::render, Order::Third });
@@ -107,44 +103,18 @@ void Scene::init_level_scene()
     add_render({ &render::finish_render, Order::Fith });
 }
 
-void Scene::load_level(save::SaveData data)
+void Scene::init_level_scene()
 {
-    int loaded_solids = 0;
+    tools::trace("Initializing level scene");
 
-    for (save::Tile tile : data.tiles) {
-        spawn_tile(reg, tile);
-        loaded_solids += 1;
+    // Try loading default level or spawn default entities
+    if (!save::load_level("level-default.json", reg)) {
+        spawn_player(reg, { 0, -32 });
+        spawn_camera(reg);
+
+        spawn_tile(reg, { 16, 16, 16, 16 });
+        spawn_tile(reg, { -16, 16, 16, 16 });
     }
-
-    tools::trace(TextFormat("Loaded %d solids", loaded_solids));
-
-    spawn_player(reg, data.player);
-    spawn_camera(reg);
-}
-
-save::SaveData Scene::save_level()
-{
-    save::SaveData data;
-    data.version = "0.01";
-
-    auto v_tiles = reg.view<Solid, Pos, CollisionBounds>();
-
-    for (entt::entity tile : v_tiles) {
-        const Pos& pos = v_tiles.get<Pos>(tile);
-        const Bounds& bounds = v_tiles.get<CollisionBounds>(tile);
-
-        data.tiles.push_back({ pos.x, pos.y, bounds.half_width, bounds.half_height });
-    }
-
-    auto v_player = reg.view<Player, Pos>();
-    entt::entity player = v_player.begin() != v_player.end() ? *v_player.begin() : throw("no player to save");
-
-    auto val = v_player.begin();
-
-    const Pos& player_pos = v_player.get<Pos>(player);
-    data.tiles.push_back({ player_pos.x, player_pos.y });
-
-    return data;
 }
 
 void Scene::add_update(System system)

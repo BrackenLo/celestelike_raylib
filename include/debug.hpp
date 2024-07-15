@@ -20,6 +20,9 @@ namespace debug {
 
         bool level_editor_active;
         bool level_grid_active;
+        std::vector<const char*> levels;
+        int selected_level;
+        char save_level_name[128];
 
         MM::EntityEditor<entt::entity> inspector;
         std::set<entt::id_type> comp_list;
@@ -31,4 +34,5 @@ namespace debug {
     };
 
 }
+
 }

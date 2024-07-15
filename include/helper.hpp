@@ -23,6 +23,7 @@ namespace physics {
 
 namespace tools {
     void trace(const char* msg);
+    void warn(const char* msg);
 
     bool are_keys_down(std::vector<int> keys);
     bool are_keys_pressed(std::vector<int> keys);

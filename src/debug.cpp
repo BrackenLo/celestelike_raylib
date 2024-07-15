@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "raylib.h"
+#include "save.hpp"
 
 namespace MM {
 
@@ -95,6 +96,13 @@ void ComponentEditorWidget<celestelike::Sprite>(entt::registry& reg, entt::regis
 
     ImGui::DragInt("half_width", &val.size.half_width);
     ImGui::DragInt("half_height", &val.size.half_height);
+
+    if (reg.any_of<celestelike::CollisionBounds>(e) && ImGui::Button("Copy collision bounds")) {
+        const celestelike::Bounds& bounds = reg.get<celestelike::CollisionBounds>(e);
+
+        val.size.half_width = bounds.half_width;
+        val.size.half_height = bounds.half_height;
+    }
 }
 
 template <>
@@ -142,6 +150,8 @@ namespace debug {
         width = 400;
         level_editor_active = false;
         level_grid_active = true;
+        levels = save::get_levels();
+        selected_level = -1;
     }
 
     void DebugState::init()

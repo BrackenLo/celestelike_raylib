@@ -232,6 +232,7 @@ void World::init()
 {
     TraceLog(TraceLogLevel::LOG_INFO, "Initializing world!");
 
+    scene.init_level_register();
     scene.init_level_scene();
     scene.init();
 }

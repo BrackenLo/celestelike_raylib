@@ -98,6 +98,11 @@ namespace tools {
         TraceLog(TraceLogLevel::LOG_INFO, msg);
     }
 
+    void warn(const char* msg)
+    {
+        TraceLog(TraceLogLevel::LOG_WARNING, msg);
+    }
+
     bool are_keys_down(std::vector<int> keys)
     {
         for (int key : keys)
