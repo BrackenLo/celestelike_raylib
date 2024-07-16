@@ -1,13 +1,30 @@
 #pragma once
 
+#include "components.hpp"
 #include <entt/entity/fwd.hpp>
 #include <entt/entt.hpp>
 
 namespace celestelike {
 
 struct PlayerDescriptor {
-    int x = 0;
-    int y = 0;
+    int x;
+    int y;
+    std::vector<player::PlayerCharacterTypes> characters;
+    int character_index;
+
+    PlayerDescriptor()
+    {
+        x = 0;
+        y = 0;
+        characters = { player::PlayerCharacterTypes::Base };
+        character_index = 0;
+    }
+    PlayerDescriptor(int x, int y)
+        : PlayerDescriptor()
+    {
+        this->x = x;
+        this->y = y;
+    }
 };
 
 entt::entity spawn_player(entt::registry& reg);

@@ -14,7 +14,6 @@ enum Order {
 };
 
 struct System {
-
     std::function<void(entt::registry&, float)> system;
     int priority = Order::Third;
 };

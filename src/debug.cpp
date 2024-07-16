@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
+#include <magic_enum.hpp>
 #include <raylib.h>
 
 #include "components.hpp"
@@ -139,6 +140,62 @@ void ComponentEditorWidget<Name>(entt::registry& reg, entt::registry::entity_typ
     ImGui::InputText("Name", &val.name);
 }
 
+template <>
+void ComponentEditorWidget<celestelike::player::PlayerCharacters>(entt::registry& reg, entt::registry::entity_type e)
+{
+    auto& val = reg.get<celestelike::player::PlayerCharacters>(e);
+
+    constexpr auto player_types = magic_enum::enum_names<celestelike::player::PlayerCharacterTypes>();
+
+    auto& current_character_type = val.available_characters[val.current_character_index];
+    int current_character_type_index = static_cast<int>(current_character_type);
+
+    ImGui::Text("current character: %s", player_types[current_character_type_index].data());
+    ImGui::Text("current_character_index: '%d'", val.current_character_index);
+
+    for (int x = 0; x < val.available_characters.size(); x++) {
+        auto& character_types = val.available_characters[x];
+
+        int character_type_index = static_cast<int>(character_types);
+
+        if (ImGui::BeginCombo(TextFormat("Character %d", x), player_types[character_type_index].data())) {
+
+            for (int n = 0; n < player_types.size(); n++) {
+                const bool is_selected = (character_type_index == n);
+
+                if (ImGui::Selectable(player_types[n].data(), is_selected)) {
+                    character_type_index = n;
+                    character_types = static_cast<celestelike::player::PlayerCharacterTypes>(n);
+                }
+
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+
+            ImGui::EndCombo();
+        }
+    }
+
+    if (val.available_characters.size() < 4) {
+        if (ImGui::Button("+")) {
+            val.available_characters.push_back(celestelike::player::PlayerCharacterTypes::Base);
+        }
+        ImGui::SameLine();
+    }
+
+    if (val.available_characters.size() > 1) {
+        if (ImGui::Button("-")) {
+            val.available_characters.pop_back();
+        }
+    }
+
+    ImGui::Spacing();
+
+    ImGui::Separator();
+
+    ImGui::DragFloat("switch_character_cooldown", &val.switch_character_cooldown);
+    ImGui::Text("switch_character_time: '%f'", val.switch_character_time);
+}
 }
 
 namespace celestelike {
@@ -153,6 +210,8 @@ namespace debug {
         level_grid_active = true;
         levels = save::get_levels();
         selected_level = -1;
+
+        comp_list = { entt::type_hash<MM::Name>::value() };
     }
 
     void DebugState::init()
@@ -179,6 +238,8 @@ namespace debug {
         inspector.registerComponent<CameraTarget>("Camera Target");
 
         inspector.registerComponent<MM::Name>("Name");
+
+        inspector.registerComponent<player::PlayerCharacters>("Player Characters");
     }
 
     void DebugState::resize()

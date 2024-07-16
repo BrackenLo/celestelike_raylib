@@ -1,6 +1,9 @@
 #pragma once
 
+#include <entt/entt.hpp>
+#include <functional>
 #include <raylib.h>
+#include <vector>
 
 namespace celestelike {
 
@@ -54,7 +57,7 @@ struct Jump {
         coyote_usable = false;
         buffered_jump_usable = false;
         ended_early = false;
-        time_left_ground = 0.0f;
+        time_left_ground = -999;
     }
 };
 
@@ -115,5 +118,64 @@ struct GameCamera {
 };
 
 struct CameraTarget { };
+
+//====================================================================
+// Player stuff
+
+namespace player {
+
+    enum class PlayerCharacterTypes {
+        Base,
+        Debug,
+        Avian,
+        Celeste,
+    };
+
+    struct PlayerCharacters {
+        std::vector<PlayerCharacterTypes> available_characters;
+        int current_character_index;
+
+        float switch_character_cooldown;
+        float switch_character_time;
+
+        PlayerCharacters()
+        {
+            available_characters = { PlayerCharacterTypes::Base, PlayerCharacterTypes::Avian };
+            current_character_index = 0;
+            switch_character_cooldown = 0.5f;
+            switch_character_time = -999.0f;
+        }
+
+        PlayerCharacters(std::vector<PlayerCharacterTypes> characters, int index)
+            : PlayerCharacters()
+        {
+            available_characters = characters;
+            current_character_index = index;
+        }
+    };
+
+    struct Ability {
+        std::function<void(entt::registry&, entt::entity)> pressed;
+        std::function<void(entt::registry&, entt::entity)> held;
+        std::function<void(entt::registry&, entt::entity)> released;
+    };
+
+    struct Ability1 {
+        Ability inner;
+
+        operator Ability&() { return inner; }
+        operator const Ability&() const { return inner; }
+    };
+
+    struct Ability2 {
+        Ability inner;
+
+        operator Ability&() { return inner; }
+        operator const Ability&() const { return inner; }
+    };
+
+}
+
+//====================================================================
 
 }

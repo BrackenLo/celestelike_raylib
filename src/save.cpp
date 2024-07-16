@@ -5,6 +5,7 @@
 #include <fstream>
 #include <raylib.h>
 
+#include "components.hpp"
 #include "helper.hpp"
 
 namespace celestelike {
@@ -73,7 +74,6 @@ namespace save {
         //----------------------------------------------
 
         save::SaveData data;
-        data.version = "0.01";
 
         auto v_solids = reg.view<Solid, Pos, CollisionBounds>();
 
@@ -84,11 +84,16 @@ namespace save {
             data.tiles.push_back({ pos.x, pos.y, bounds.half_width, bounds.half_height });
         }
 
-        auto v_player = reg.view<Player, Pos>();
+        auto v_player = reg.view<Player, Pos, player::PlayerCharacters>();
         entt::entity player = v_player.begin() != v_player.end() ? *v_player.begin() : throw("no player to save");
 
         const Pos& player_pos = v_player.get<Pos>(player);
-        data.player = SavePlayer { player_pos.x, player_pos.y };
+        const player::PlayerCharacters& player_characters = v_player.get<player::PlayerCharacters>(player);
+        PlayerDescriptor desc(player_pos.x, player_pos.y);
+        desc.characters = player_characters.available_characters;
+        desc.character_index = player_characters.current_character_index;
+
+        data.player = SavePlayer { desc };
 
         //----------------------------------------------
 

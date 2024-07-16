@@ -12,6 +12,7 @@
 #include "defs.hpp"
 #include "factory.hpp"
 #include "helper.hpp"
+#include "player.hpp"
 #include "resources.hpp"
 #include "save.hpp"
 
@@ -327,6 +328,40 @@ void player::handle_walk(entt::registry& reg, float dt)
     }
 }
 
+void player::handle_ability_1(entt::registry& reg, float dt)
+{
+}
+
+void player::handle_ability_2(entt::registry& reg, float dt)
+{
+}
+
+void player::handle_character_change(entt::registry& reg, float dt)
+{
+    PlayerInput& input = reg.ctx().get<PlayerInput>();
+
+    if (!input.ability_3_pressed)
+        return;
+
+    FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
+
+    auto v_player = reg.view<Player, PlayerCharacters>();
+
+    for (entt::entity entity : v_player) {
+        PlayerCharacters& characters = v_player.get<PlayerCharacters>(entity);
+
+        // Check on cooldown
+        if (fixed.elapsed < characters.switch_character_time + characters.switch_character_cooldown)
+            continue;
+
+        //
+        tools::trace("Changing player character");
+
+        characters.switch_character_time = fixed.elapsed;
+        next_character_type(reg, entity);
+    }
+}
+
 bool has_buffered_jump(const Jump& jump, const PlayerInput& input, const FixedTimestep& fixed)
 {
     return jump.buffered_jump_usable && fixed.elapsed < input.time_jump_pressed + jump.jump_buffer;
@@ -377,19 +412,19 @@ void player::handle_gravity(entt::registry& reg, float dt)
     auto v_jump = reg.view<Jump>();
     auto v_grounded = reg.view<OnGround>();
 
-    for (entt::entity player : v_player) {
-        Velocity& velocity = v_player.get<Velocity>(player);
-        const Gravity& gravity = v_player.get<Gravity>(player);
+    for (entt::entity entity : v_player) {
+        Velocity& velocity = v_player.get<Velocity>(entity);
+        const Gravity& gravity = v_player.get<Gravity>(entity);
 
         // On ground
-        if (v_grounded.contains(player) && velocity.y >= 0.0f) {
+        if (v_grounded.contains(entity) && velocity.y >= 0.0f) {
             velocity.y = 100; // TODO | TEST - Grounding force
 
         } else {
             int fall_speed = gravity.fall_speed;
 
-            if (v_jump.contains(player)) {
-                Jump& jump = v_jump.get<Jump>(player);
+            if (v_jump.contains(entity)) {
+                Jump& jump = v_jump.get<Jump>(entity);
 
                 if (jump.ended_early && velocity.y < 0)
                     fall_speed *= jump.fall_multiplier;

@@ -1,7 +1,7 @@
 #include "player_inner_base.hpp"
 
+#include "game/player.hpp"
 #include "helper.hpp"
-#include "player.hpp"
 #include "raymath.h"
 
 #include <algorithm>

@@ -3,6 +3,7 @@
 #include <imgui_entt_entity_editor.hpp>
 
 #include "components.hpp"
+#include "player.hpp"
 
 namespace celestelike {
 
@@ -21,19 +22,23 @@ entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc)
 
     reg.emplace<MM::Name>(entity, "Player");
 
-    reg.emplace<Pos>(entity, desc.x, desc.y);
-    reg.emplace<CollisionBounds>(entity, bounds);
-
-    reg.emplace<Velocity>(entity, 0, 0);
-    reg.emplace<WalkSpeed>(entity, 2200, 2600, 400);
-    reg.emplace<Jump>(entity);
-    reg.emplace<Gravity>(entity, 2000, 800);
-
     reg.emplace<Actor>(entity);
     reg.emplace<Player>(entity);
 
+    reg.emplace<Pos>(entity, desc.x, desc.y);
+    reg.emplace<Velocity>(entity, 0, 0);
+
+    // reg.emplace<CollisionBounds>(entity, bounds);
+
+    // reg.emplace<WalkSpeed>(entity, 2200, 2600, 400);
+    // reg.emplace<Jump>(entity);
+    // reg.emplace<Gravity>(entity, 2000, 800);
+
     reg.emplace<Render>(entity, true);
-    reg.emplace<Sprite>(entity, RED, bounds);
+    // reg.emplace<Sprite>(entity, RED, bounds);
+
+    reg.emplace<player::PlayerCharacters>(entity, desc.characters, desc.character_index);
+    player::next_character_type(reg, entity); // Should insert all the main components
 
     reg.emplace<CameraTarget>(entity);
 

@@ -83,9 +83,12 @@ void Scene::init_level_register()
     add_fixed({ &physics::check_on_walls, Order::First });
 
     add_fixed({ &player::examine_collisions, Order::Third });
-    add_fixed({ &player::handle_walk, Order::Third });
-    add_fixed({ &player::handle_jump, Order::Third });
-    add_fixed({ &player::handle_gravity, Order::Third + 1 });
+    add_fixed({ &player::handle_walk, Order::Third + 1 });
+    add_fixed({ &player::handle_ability_1, Order::Third + 2 });
+    add_fixed({ &player::handle_ability_2, Order::Third + 3 });
+    add_fixed({ &player::handle_character_change, Order::Third + 4 });
+    add_fixed({ &player::handle_jump, Order::Third + 5 });
+    add_fixed({ &player::handle_gravity, Order::Third + 6 });
 
     add_fixed({ &player::reset_values, Order::Fith });
 
@@ -108,7 +111,7 @@ void Scene::init_level_scene()
 
     // Try loading default level or spawn default entities
     if (!save::load_level("level-default.json", reg)) {
-        spawn_player(reg, { 0, -32 });
+        spawn_player(reg, PlayerDescriptor(0, -32));
         spawn_camera(reg);
 
         spawn_tile(reg, { 16, 16, 16, 16 });
