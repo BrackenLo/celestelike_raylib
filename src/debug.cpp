@@ -196,6 +196,14 @@ void ComponentEditorWidget<celestelike::player::PlayerCharacters>(entt::registry
     ImGui::DragFloat("switch_character_cooldown", &val.switch_character_cooldown);
     ImGui::Text("switch_character_time: '%f'", val.switch_character_time);
 }
+
+template <>
+void ComponentEditorWidget<celestelike::player::Glide>(entt::registry& reg, entt::registry::entity_type e)
+{
+    auto& val = reg.get<celestelike::player::Glide>(e);
+    ImGui::DragInt("glide_fall_speed", &val.glide_fall_speed);
+}
+
 }
 
 namespace celestelike {
@@ -240,6 +248,9 @@ namespace debug {
         inspector.registerComponent<MM::Name>("Name");
 
         inspector.registerComponent<player::PlayerCharacters>("Player Characters");
+        inspector.registerComponent<player::Ability1>("Ability1");
+        inspector.registerComponent<player::Ability2>("Ability2");
+        inspector.registerComponent<player::Glide>("Glide");
     }
 
     void DebugState::resize()

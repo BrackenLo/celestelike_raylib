@@ -155,9 +155,10 @@ namespace player {
     };
 
     struct Ability {
-        std::function<void(entt::registry&, entt::entity)> pressed;
-        std::function<void(entt::registry&, entt::entity)> held;
-        std::function<void(entt::registry&, entt::entity)> released;
+        std::string ability_name;
+        std::function<void(entt::registry&, float, entt::entity)> pressed;
+        std::function<void(entt::registry&, float, entt::entity)> held;
+        std::function<void(entt::registry&, float, entt::entity)> released;
     };
 
     struct Ability1 {
@@ -172,6 +173,10 @@ namespace player {
 
         operator Ability&() { return inner; }
         operator const Ability&() const { return inner; }
+    };
+
+    struct Glide {
+        int glide_fall_speed;
     };
 
 }

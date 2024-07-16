@@ -24,6 +24,12 @@ struct ClearColor {
 };
 
 struct PlayerInput {
+    struct AbilityInput {
+        bool pressed = false;
+        bool down = false;
+        bool released = false;
+    };
+
     // Config Player Variables
     std::vector<int> key_up = { KEY_I };
     std::vector<int> key_down = { KEY_K };
@@ -42,10 +48,8 @@ struct PlayerInput {
     bool jump_pressed = false;
     float time_jump_pressed = 0.0f;
 
-    bool ability_1_pressed = false;
-    bool ability_1_down = false;
-    bool ability_2_pressed = false;
-    bool ability_2_down = false;
+    AbilityInput ability_1;
+    AbilityInput ability_2;
 
     bool ability_3_pressed = false;
 };

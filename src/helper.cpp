@@ -103,6 +103,11 @@ namespace tools {
         TraceLog(TraceLogLevel::LOG_WARNING, msg);
     }
 
+    void error(const char* msg)
+    {
+        TraceLog(TraceLogLevel::LOG_ERROR, msg);
+    }
+
     bool are_keys_down(std::vector<int> keys)
     {
         for (int key : keys)
@@ -115,6 +120,14 @@ namespace tools {
     {
         for (int key : keys)
             if (IsKeyPressed(key))
+                return true;
+        return false;
+    }
+
+    bool are_keys_released(std::vector<int> keys)
+    {
+        for (int key : keys)
+            if (IsKeyReleased(key))
                 return true;
         return false;
     }

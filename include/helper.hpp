@@ -25,9 +25,11 @@ namespace physics {
 namespace tools {
     void trace(const char* msg);
     void warn(const char* msg);
+    void error(const char* msg);
 
     bool are_keys_down(std::vector<int> keys);
     bool are_keys_pressed(std::vector<int> keys);
+    bool are_keys_released(std::vector<int> keys);
 
     template <typename T>
     T step(T val, T target, T step)

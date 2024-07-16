@@ -251,12 +251,15 @@ void player::update_input(entt::registry& reg, float dt)
         input.time_jump_pressed = fixed.elapsed;
     }
 
-    input.ability_1_pressed = input.ability_1_pressed || tools::are_keys_pressed(input.key_ability_1);
-    input.ability_2_pressed = input.ability_2_pressed || tools::are_keys_pressed(input.key_ability_2);
+    input.ability_1.pressed = input.ability_1.pressed || tools::are_keys_pressed(input.key_ability_1);
+    input.ability_2.pressed = input.ability_2.pressed || tools::are_keys_pressed(input.key_ability_2);
     input.ability_3_pressed = input.ability_3_pressed || tools::are_keys_pressed(input.key_ability_3);
 
-    input.ability_1_down = tools::are_keys_down(input.key_ability_1);
-    input.ability_2_down = tools::are_keys_down(input.key_ability_2);
+    input.ability_1.down = tools::are_keys_down(input.key_ability_1);
+    input.ability_2.down = tools::are_keys_down(input.key_ability_2);
+
+    input.ability_1.released = tools::are_keys_released(input.key_ability_1);
+    input.ability_2.released = tools::are_keys_released(input.key_ability_2);
 }
 
 void player::examine_collisions(entt::registry& reg, float dt)
@@ -328,17 +331,46 @@ void player::handle_walk(entt::registry& reg, float dt)
     }
 }
 
+template <typename T>
+void handle_ability_inner(entt::registry& reg, float dt, bool pressed, bool held, bool released)
+{
+    if (!pressed && !held && !released)
+        return;
+
+    auto v_player_ability = reg.view<T>();
+
+    for (entt::entity entity : v_player_ability) {
+        T& ability = v_player_ability.template get<T>(entity);
+
+        if (pressed) {
+            tools::trace("Ability pressed");
+            if (ability.inner.pressed != nullptr)
+                ability.inner.pressed(reg, dt, entity);
+        }
+
+        if (held && ability.inner.held != nullptr)
+            ability.inner.held(reg, dt, entity);
+
+        if (released && ability.inner.released != nullptr)
+            ability.inner.released(reg, dt, entity);
+    }
+}
+
 void player::handle_ability_1(entt::registry& reg, float dt)
 {
+    PlayerInput& input = reg.ctx().get<PlayerInput>();
+    handle_ability_inner<Ability1>(reg, dt, input.ability_1.pressed, input.ability_1.down, input.ability_1.released);
 }
 
 void player::handle_ability_2(entt::registry& reg, float dt)
 {
+    PlayerInput& input = reg.ctx().get<PlayerInput>();
+    handle_ability_inner<Ability2>(reg, dt, input.ability_2.pressed, input.ability_2.down, input.ability_2.released);
 }
 
 void player::handle_character_change(entt::registry& reg, float dt)
 {
-    PlayerInput& input = reg.ctx().get<PlayerInput>();
+    const PlayerInput& input = reg.ctx().get<PlayerInput>();
 
     if (!input.ability_3_pressed)
         return;
@@ -408,13 +440,13 @@ void player::handle_jump(entt::registry& reg, float dt)
 
 void player::handle_gravity(entt::registry& reg, float dt)
 {
-    auto v_player = reg.view<Player, Velocity, Gravity>();
+    auto v_gravity = reg.view<Velocity, Gravity>();
     auto v_jump = reg.view<Jump>();
     auto v_grounded = reg.view<OnGround>();
 
-    for (entt::entity entity : v_player) {
-        Velocity& velocity = v_player.get<Velocity>(entity);
-        const Gravity& gravity = v_player.get<Gravity>(entity);
+    for (entt::entity entity : v_gravity) {
+        Velocity& velocity = v_gravity.get<Velocity>(entity);
+        const Gravity& gravity = v_gravity.get<Gravity>(entity);
 
         // On ground
         if (v_grounded.contains(entity) && velocity.y >= 0.0f) {
@@ -435,13 +467,42 @@ void player::handle_gravity(entt::registry& reg, float dt)
     }
 }
 
+void player::handle_ability_glide(entt::registry& reg, float dt)
+{
+    const PlayerInput& input = reg.ctx().get<PlayerInput>();
+
+    auto v_glide = reg.view<Player, Velocity, Gravity, Glide>(entt::exclude<OnGround>); // TODO - remove player input to make generic
+
+    if (!input.jump_held)
+        return;
+
+    for (entt::entity entity : v_glide) {
+        Velocity& velocity = v_glide.get<Velocity>(entity);
+        Gravity& gravity = v_glide.get<Gravity>(entity);
+        Glide& glide = v_glide.get<Glide>(entity);
+
+        // Doesn't apply if going up
+        if (velocity.y < 0)
+            continue;
+
+        int fall_speed = gravity.fall_speed;
+
+        velocity.y = tools::step<int>(velocity.y, glide.glide_fall_speed, fall_speed * 2 * dt);
+    }
+}
+
 void player::reset_values(entt::registry& reg, float dt)
 {
     PlayerInput& input = reg.ctx().get<PlayerInput>();
 
     input.jump_pressed = false;
-    input.ability_1_pressed = false;
-    input.ability_2_pressed = false;
+
+    input.ability_1.pressed = false;
+    input.ability_1.released = false;
+
+    input.ability_2.pressed = false;
+    input.ability_2.released = false;
+
     input.ability_3_pressed = false;
 }
 

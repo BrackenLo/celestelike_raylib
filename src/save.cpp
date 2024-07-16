@@ -85,7 +85,17 @@ namespace save {
         }
 
         auto v_player = reg.view<Player, Pos, player::PlayerCharacters>();
-        entt::entity player = v_player.begin() != v_player.end() ? *v_player.begin() : throw("no player to save");
+
+        tools::trace("Checking for players: ");
+        for (entt::entity player : v_player) {
+            tools::trace("   - Found player");
+        }
+
+        if (v_player.begin() == v_player.end()) {
+            tools::error("No player found to save");
+            return false;
+        }
+        entt::entity player = *v_player.begin();
 
         const Pos& player_pos = v_player.get<Pos>(player);
         const player::PlayerCharacters& player_characters = v_player.get<player::PlayerCharacters>(player);
@@ -115,22 +125,21 @@ namespace save {
         //     .append(".json");
         std::ifstream file(file_name);
         if (!file.is_open()) {
-            tools::warn(TextFormat("Could not open level '%s'", level_file_name));
+            tools::error(TextFormat("Could not open level '%s'", level_file_name));
             return false;
         }
-
-        cereal::JSONInputArchive archive(file);
-
-        //----------------------------------------------
 
         SaveData data;
 
         try {
+            cereal::JSONInputArchive archive(file);
             archive(data);
-        } catch (cereal::Exception val) {
-            tools::trace(TextFormat("Could not deserialise level '%s' - %s", level_file_name, val.what()));
+        } catch (cereal::Exception save_exception) {
+            tools::error(TextFormat("Could not deserialise level - %s", save_exception.what()));
             return false;
         }
+
+        //----------------------------------------------
 
         //----------------------------------------------
 

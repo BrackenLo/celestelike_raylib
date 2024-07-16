@@ -27,8 +27,7 @@ struct PlayerDescriptor {
     }
 };
 
-entt::entity spawn_player(entt::registry& reg);
-entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc);
+entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc = PlayerDescriptor());
 
 entt::entity spawn_camera(entt::registry& reg);
 
@@ -39,7 +38,6 @@ struct TileDescriptor {
     int half_height = 16;
 };
 
-entt::entity spawn_tile(entt::registry& reg);
-entt::entity spawn_tile(entt::registry& reg, TileDescriptor desc);
+entt::entity spawn_tile(entt::registry& reg, TileDescriptor desc = TileDescriptor());
 
 }

@@ -34,6 +34,8 @@ namespace player {
     void handle_jump(entt::registry& reg, float dt);
     void handle_gravity(entt::registry& reg, float dt);
 
+    void handle_ability_glide(entt::registry& reg, float dt);
+
     void reset_values(entt::registry& reg, float dt);
 }
 

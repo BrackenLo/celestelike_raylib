@@ -89,6 +89,7 @@ void Scene::init_level_register()
     add_fixed({ &player::handle_character_change, Order::Third + 4 });
     add_fixed({ &player::handle_jump, Order::Third + 5 });
     add_fixed({ &player::handle_gravity, Order::Third + 6 });
+    add_fixed({ &player::handle_ability_glide, Order::Third + 7 });
 
     add_fixed({ &player::reset_values, Order::Fith });
 

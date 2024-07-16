@@ -115,9 +115,7 @@ void player::setup_base(entt::registry& reg, entt::entity player)
 {
     reset_player(reg, player, BasePlayerStats());
 }
-void player::reset_base(entt::registry& reg, entt::entity player)
-{
-}
+void player::reset_base(entt::registry& reg, entt::entity player) { }
 
 void player::setup_debug(entt::registry& reg, entt::entity player)
 {
@@ -126,9 +124,7 @@ void player::setup_debug(entt::registry& reg, entt::entity player)
     // reg.remove<CollisionBounds>(player);
     // reg.emplace<DebugMovement>(player);
 }
-void player::reset_debug(entt::registry& reg, entt::entity player)
-{
-}
+void player::reset_debug(entt::registry& reg, entt::entity player) { }
 
 void player::setup_avian(entt::registry& reg, entt::entity player)
 {
@@ -151,15 +147,22 @@ void player::setup_avian(entt::registry& reg, entt::entity player)
 
     // add double jump
     // add glide
+
+    reg.emplace<Glide>(player, 300);
 }
 void player::reset_avian(entt::registry& reg, entt::entity player)
 {
     // remove double jump
     // remove glide
+
+    reg.remove<Glide>(player);
 }
 
 void player::setup_celeste(entt::registry& reg, entt::entity player)
 {
+    BasePlayerStats stats;
+    reset_player(reg, player, stats);
+
     // add dash
 }
 void player::reset_celeste(entt::registry& reg, entt::entity player)

@@ -7,13 +7,6 @@
 
 namespace celestelike {
 
-entt::entity spawn_player(entt::registry& reg)
-{
-    PlayerDescriptor desc;
-
-    return spawn_player(reg, desc);
-}
-
 entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc)
 {
     entt::entity entity = reg.create();
@@ -28,17 +21,10 @@ entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc)
     reg.emplace<Pos>(entity, desc.x, desc.y);
     reg.emplace<Velocity>(entity, 0, 0);
 
-    // reg.emplace<CollisionBounds>(entity, bounds);
-
-    // reg.emplace<WalkSpeed>(entity, 2200, 2600, 400);
-    // reg.emplace<Jump>(entity);
-    // reg.emplace<Gravity>(entity, 2000, 800);
-
     reg.emplace<Render>(entity, true);
-    // reg.emplace<Sprite>(entity, RED, bounds);
 
-    reg.emplace<player::PlayerCharacters>(entity, desc.characters, desc.character_index);
-    player::next_character_type(reg, entity); // Should insert all the main components
+    reg.emplace<player::PlayerCharacters>(entity, player::PlayerCharacters(desc.characters, desc.character_index));
+    player::set_player_character_type(reg, entity); // Should insert all the main components
 
     reg.emplace<CameraTarget>(entity);
 
@@ -61,11 +47,6 @@ entt::entity spawn_camera(entt::registry& reg)
 }
 
 //
-
-entt::entity spawn_tile(entt::registry& reg)
-{
-    return spawn_tile(reg, TileDescriptor());
-}
 
 entt::entity spawn_tile(entt::registry& reg, TileDescriptor desc)
 {
