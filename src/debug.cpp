@@ -51,6 +51,14 @@ void ComponentEditorWidget<celestelike::Jump>(entt::registry& reg, entt::registr
     ImGui::Checkbox("buffered_jump_usable", &val.buffered_jump_usable);
     ImGui::Checkbox("ended_early", &val.ended_early);
     ImGui::EndDisabled();
+}
+
+template <>
+void ComponentEditorWidget<celestelike::JumpData>(entt::registry& reg, entt::registry::entity_type e)
+{
+    auto& val = reg.get<celestelike::JumpData>(e);
+
+    ImGui::Text("Jumps used: %d", val.jumps_used);
     ImGui::Text("time_left_ground: %f", val.time_left_ground);
 }
 
@@ -201,7 +209,8 @@ template <>
 void ComponentEditorWidget<celestelike::player::Glide>(entt::registry& reg, entt::registry::entity_type e)
 {
     auto& val = reg.get<celestelike::player::Glide>(e);
-    ImGui::DragInt("glide_fall_speed", &val.glide_fall_speed);
+    ImGui::DragInt("fall_speed", &val.fall_speed);
+    ImGui::DragInt("max_fall_speed", &val.max_fall_speed);
 }
 
 }
@@ -232,6 +241,7 @@ namespace debug {
         inspector.registerComponent<Velocity>("Velocity");
         inspector.registerComponent<WalkSpeed>("Walk Speed");
         inspector.registerComponent<Jump>("Jump");
+        inspector.registerComponent<JumpData>("JumpData");
         inspector.registerComponent<Gravity>("Gravity");
         inspector.registerComponent<CollisionBounds>("Collision Bounds");
 
@@ -251,6 +261,9 @@ namespace debug {
         inspector.registerComponent<player::Ability1>("Ability1");
         inspector.registerComponent<player::Ability2>("Ability2");
         inspector.registerComponent<player::Glide>("Glide");
+
+        inspector.registerComponent<DisableGravity>("Disable Gravity");
+        inspector.registerComponent<DisableMovement>("Disable Movement");
     }
 
     void DebugState::resize()

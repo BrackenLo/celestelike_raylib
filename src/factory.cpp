@@ -21,6 +21,8 @@ entt::entity spawn_player(entt::registry& reg, PlayerDescriptor desc)
     reg.emplace<Pos>(entity, desc.x, desc.y);
     reg.emplace<Velocity>(entity, 0, 0);
 
+    reg.emplace<JumpData>(entity);
+
     reg.emplace<Render>(entity, true);
 
     reg.emplace<player::PlayerCharacters>(entity, player::PlayerCharacters(desc.characters, desc.character_index));

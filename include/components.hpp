@@ -16,6 +16,11 @@ struct Bounds {
 
 //====================================================================
 
+struct DisableMovement { };
+struct DisableGravity { };
+
+//====================================================================
+
 struct Pos {
     int x;
     int y;
@@ -43,8 +48,6 @@ struct Jump {
     bool ended_early;
     float fall_multiplier;
 
-    float time_left_ground;
-
     Jump()
         : Jump(-800, 0.2f, 0.2f, 3.0f) {};
 
@@ -57,7 +60,18 @@ struct Jump {
         coyote_usable = false;
         buffered_jump_usable = false;
         ended_early = false;
+    }
+};
+
+// TODO - Add this data to save file
+struct JumpData {
+    float time_left_ground;
+    int jumps_used;
+
+    JumpData()
+    {
         time_left_ground = -999;
+        jumps_used = 0;
     }
 };
 
@@ -176,7 +190,13 @@ namespace player {
     };
 
     struct Glide {
-        int glide_fall_speed;
+        int fall_speed;
+        int max_fall_speed;
+    };
+
+    struct MultiJump {
+        int used_jumps;
+        int max_jumps;
     };
 
 }

@@ -148,7 +148,8 @@ void player::setup_avian(entt::registry& reg, entt::entity player)
     // add double jump
     // add glide
 
-    reg.emplace<Glide>(player, 300);
+    reg.emplace<Glide>(player, 900, 200);
+    reg.emplace<MultiJump>(player, 0, 2);
 }
 void player::reset_avian(entt::registry& reg, entt::entity player)
 {
@@ -156,6 +157,8 @@ void player::reset_avian(entt::registry& reg, entt::entity player)
     // remove glide
 
     reg.remove<Glide>(player);
+    reg.remove<DisableGravity>(player);
+    reg.remove<MultiJump>(player);
 }
 
 void player::setup_celeste(entt::registry& reg, entt::entity player)
