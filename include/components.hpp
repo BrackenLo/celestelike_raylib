@@ -21,6 +21,16 @@ struct DisableGravity { };
 
 //====================================================================
 
+struct MovementInfo {
+    bool can_jump;
+    bool can_wall_jump;
+
+    int gravity;
+
+    bool jumped;
+    int jumps_used;
+};
+
 struct Pos {
     int x;
     int y;
@@ -90,8 +100,14 @@ struct CollisionBounds {
 struct OnGround {
     bool just_started = false;
 };
+
 struct OnCeiling {
     bool just_started = false;
+};
+
+struct OnWall {
+    bool on_left = false;
+    bool on_right = false;
 };
 
 struct Solid { };

@@ -144,41 +144,78 @@ void physics::check_on_walls(entt::registry& reg, float dt)
     auto v_actor = reg.view<Actor, Pos, CollisionBounds>();
     auto v_solid = reg.view<Solid, Pos, CollisionBounds>();
 
+    auto v_on_wall = reg.view<OnWall>();
     auto v_on_ground = reg.view<OnGround>();
     auto v_on_ceiling = reg.view<OnCeiling>();
 
     for (entt::entity actor : v_actor) {
+        bool wall_hit_left = false;
+        bool wall_hit_right = false;
         bool ground_hit = false;
         bool ceiling_hit = false;
 
         const Pos& actor_pos = v_actor.get<Pos>(actor);
         const Bounds& actor_bounds = v_actor.get<CollisionBounds>(actor);
 
-        const Pos actor_check_pos = { actor_pos.x, actor_pos.y - 2 };
-        const Bounds actor_check_bounds = {
-            actor_bounds.half_width, actor_bounds.half_height + 4
-        };
+        // Wall Checking
+        const Pos hor_actor_check_pos = { actor_pos.x - 2, actor_pos.y };
+        const Bounds hor_actor_check_bounds = { actor_bounds.half_width + 4, actor_bounds.half_height };
+
+        // Floor and Ceiling checking
+        const Pos vert_actor_check_pos = { actor_pos.x, actor_pos.y - 2 };
+        const Bounds vert_actor_check_bounds = { actor_bounds.half_width, actor_bounds.half_height + 4 };
 
         for (entt::entity solid : v_solid) {
             const Pos& solid_pos = v_solid.get<Pos>(solid);
             const Bounds& solid_bounds = v_solid.get<CollisionBounds>(solid);
 
+            // Check left and right walls
             if (check_collision(
-                    actor_check_pos, actor_check_bounds,
+                    hor_actor_check_pos, hor_actor_check_bounds,
+                    solid_pos, solid_bounds) //
+            ) {
+                int depth = physics::get_collision_depth_x(
+                    hor_actor_check_pos, hor_actor_check_bounds,
+                    solid_pos, solid_bounds);
+
+                if (depth < 0)
+                    wall_hit_right = true;
+                else
+                    wall_hit_left = true;
+            }
+
+            // Check floor and ceiling
+            if (check_collision(
+                    vert_actor_check_pos, vert_actor_check_bounds,
                     solid_pos, solid_bounds) //
             ) {
                 int depth = physics::get_collision_depth_y(
-                    actor_check_pos, actor_check_bounds,
+                    vert_actor_check_pos, vert_actor_check_bounds,
                     solid_pos, solid_bounds);
 
                 if (depth < 0)
                     ground_hit = true;
                 else
                     ceiling_hit = true;
-
-                if (ground_hit && ceiling_hit)
-                    break;
             }
+        }
+
+        //----------------------------------------------
+
+        if (wall_hit_left || wall_hit_right) {
+            if (v_on_wall.contains(actor)) {
+                OnWall& on_wall = v_on_wall.get<OnWall>(actor);
+                on_wall.on_left = wall_hit_left;
+                on_wall.on_right = wall_hit_right;
+            } else {
+                reg.emplace<OnWall>(actor, OnWall { wall_hit_left, wall_hit_right });
+            }
+
+        }
+        // Not on wall so remove component if it exists
+        else {
+            if (v_on_wall.contains(actor))
+                reg.erase<OnWall>(actor);
         }
 
         //----------------------------------------------
@@ -192,7 +229,9 @@ void physics::check_on_walls(entt::registry& reg, float dt)
                 reg.emplace<OnGround>(actor, true);
             }
 
-        } else {
+        }
+        // Not on ground so remove component if it exists
+        else {
             if (v_on_ground.contains(actor))
                 reg.erase<OnGround>(actor);
         }
@@ -206,7 +245,9 @@ void physics::check_on_walls(entt::registry& reg, float dt)
                 reg.emplace<OnCeiling>(actor, true);
             }
 
-        } else {
+        }
+        // Not on ceiling so remove component if it exists
+        else {
             if (v_on_ceiling.contains(actor))
                 reg.erase<OnCeiling>(actor);
         }
@@ -308,6 +349,60 @@ void player::left_ground(entt::registry& reg, entt::entity player)
     }
 }
 
+// bool has_buffered_jump(const Jump& jump, const PlayerInput& input, const FixedTimestep& fixed);
+// bool can_coyote_jump(const Jump& jump, const JumpData& jump_data, bool grounded, const FixedTimestep& fixed);
+
+bool has_buffered_jump(const Jump& jump, const PlayerInput& input, const FixedTimestep& fixed)
+{
+    return jump.buffered_jump_usable && fixed.elapsed < input.time_jump_pressed + jump.jump_buffer;
+}
+
+bool can_coyote_jump(const Jump& jump, const JumpData& jump_data, bool grounded, const FixedTimestep& fixed)
+{
+    return jump.coyote_usable && !grounded && fixed.elapsed < jump_data.time_left_ground + jump.coyote_time;
+}
+
+void player::set_movement_info(entt::registry& reg, entt::entity player)
+{
+    const PlayerInput& input = reg.ctx().get<PlayerInput>();
+    const FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
+
+    auto v_movement_info = reg.view<MovementInfo, Jump, JumpData>();
+    auto v_on_ground = reg.view<OnGround>();
+    auto v_on_wall = reg.view<OnWall>();
+
+    for (entt::entity entity : v_movement_info) {
+        MovementInfo& move_info = v_movement_info.get<MovementInfo>(entity);
+        const Jump& jump = v_movement_info.get<Jump>(entity);
+        const JumpData& jump_data = v_movement_info.get<JumpData>(entity);
+
+        bool grounded = v_on_ground.contains(entity);
+
+        move_info.jumped = false;
+        move_info.can_jump = false;
+        move_info.can_wall_jump = false;
+
+        if (
+            (input.jump_pressed || has_buffered_jump(jump, input, fixed)) && //
+            (grounded || can_coyote_jump(jump, jump_data, grounded, fixed)) //
+        ) {
+            move_info.can_jump = true;
+        }
+
+        if (v_on_wall.contains(entity)) {
+            const OnWall& on_wall = v_on_wall.get<OnWall>(entity);
+        }
+
+        // // Check if jump pressed or was pressed in time
+        // if (!input.jump_pressed && !has_buffered_jump(jump, input, fixed))
+        //     continue;
+
+        // // Check if we can jump
+        // if (grounded || can_coyote_jump(jump, jump_data, grounded, fixed))
+        //     do_jump(input, jump, jump_data, velocity);
+    }
+}
+
 // Apply player horizontal velocity
 void player::handle_walk(entt::registry& reg, float dt)
 {
@@ -398,16 +493,6 @@ void player::handle_character_change(entt::registry& reg, float dt)
     }
 }
 
-bool has_buffered_jump(const Jump& jump, const PlayerInput& input, const FixedTimestep& fixed)
-{
-    return jump.buffered_jump_usable && fixed.elapsed < input.time_jump_pressed + jump.jump_buffer;
-}
-
-bool can_coyote_jump(const Jump& jump, const JumpData& jump_data, bool grounded, const FixedTimestep& fixed)
-{
-    return jump.coyote_usable && !grounded && fixed.elapsed < jump_data.time_left_ground + jump.coyote_time;
-}
-
 void do_jump(PlayerInput& input, Jump& jump, JumpData& jump_data, Velocity& velocity)
 {
     velocity.y = jump.impulse;
@@ -423,7 +508,7 @@ void do_jump(PlayerInput& input, Jump& jump, JumpData& jump_data, Velocity& velo
 void player::handle_jump(entt::registry& reg, float dt)
 {
     PlayerInput& input = reg.ctx().get<PlayerInput>();
-    FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
+    const FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
 
     auto v_player = reg.view<Player, Velocity, Jump, JumpData>(entt::exclude<DisableMovement>);
     auto v_on_ground = reg.view<OnGround>();
@@ -447,6 +532,44 @@ void player::handle_jump(entt::registry& reg, float dt)
         if (grounded || can_coyote_jump(jump, jump_data, grounded, fixed))
             do_jump(input, jump, jump_data, velocity);
     }
+}
+
+void player::handle_ability_multi_jump(entt::registry& reg, float dt)
+{
+    PlayerInput& input = reg.ctx().get<PlayerInput>();
+    const FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
+
+    auto v_multi_jump = reg.view<Jump, JumpData, MultiJump, Velocity>(entt::exclude<DisableMovement>);
+    auto v_on_ground = reg.view<OnGround>();
+
+    // Don't do anything if not trying to jump
+    if (!input.jump_pressed)
+        return;
+
+    for (entt::entity entity : v_multi_jump) {
+        Jump& jump = v_multi_jump.get<Jump>(entity);
+        JumpData& jump_data = v_multi_jump.get<JumpData>(entity);
+
+        MultiJump& multi_jump = v_multi_jump.get<MultiJump>(entity);
+        Velocity& velocity = v_multi_jump.get<Velocity>(entity);
+
+        bool grounded = v_on_ground.contains(entity);
+
+        if (jump_data.jumps_used >= multi_jump.max_jumps)
+            continue;
+
+        //
+        if (!grounded && !can_coyote_jump(jump, jump_data, grounded, fixed)) {
+            if (jump_data.jumps_used == 0)
+                jump_data.jumps_used += 1;
+
+            do_jump(input, jump, jump_data, velocity);
+        }
+    }
+}
+
+void player::handle_wall_jump(entt::registry& reg, float dt)
+{
 }
 
 void player::handle_gravity(entt::registry& reg, float dt)
@@ -499,40 +622,6 @@ void player::handle_ability_glide(entt::registry& reg, float dt)
 
         int fall_speed = glide.fall_speed;
         velocity.y = tools::step<int>(velocity.y, glide.max_fall_speed, fall_speed * dt);
-    }
-}
-
-void player::handle_ability_multi_jump(entt::registry& reg, float dt)
-{
-    PlayerInput& input = reg.ctx().get<PlayerInput>();
-    FixedTimestep& fixed = reg.ctx().get<FixedTimestep>();
-
-    auto v_multi_jump = reg.view<Jump, JumpData, MultiJump, Velocity>(entt::exclude<DisableMovement>);
-    auto v_on_ground = reg.view<OnGround>();
-
-    // Don't do anything if not trying to jump
-    if (!input.jump_pressed)
-        return;
-
-    for (entt::entity entity : v_multi_jump) {
-        Jump& jump = v_multi_jump.get<Jump>(entity);
-        JumpData& jump_data = v_multi_jump.get<JumpData>(entity);
-
-        MultiJump& multi_jump = v_multi_jump.get<MultiJump>(entity);
-        Velocity& velocity = v_multi_jump.get<Velocity>(entity);
-
-        bool grounded = v_on_ground.contains(entity);
-
-        if (jump_data.jumps_used >= multi_jump.max_jumps)
-            continue;
-
-        //
-        if (!grounded && !can_coyote_jump(jump, jump_data, grounded, fixed)) {
-            if (jump_data.jumps_used == 0)
-                jump_data.jumps_used += 1;
-
-            do_jump(input, jump, jump_data, velocity);
-        }
     }
 }
 

@@ -20,22 +20,27 @@ namespace update {
 }
 
 namespace player {
+    // TODO - wall slide, multiple jumps, wall jump, abilities, character switching/stat switching
+
     void init_systems(entt::registry& reg);
 
     void update_input(entt::registry& reg, float dt);
 
     void examine_collisions(entt::registry& reg, float dt);
-    void left_ground(entt::registry& reg, entt::entity player);
+    void left_ground(entt::registry& reg, entt::entity player); // event
+    void set_movement_info(entt::registry& reg, entt::entity player);
 
     void handle_walk(entt::registry& reg, float dt);
     void handle_ability_1(entt::registry& reg, float dt);
     void handle_ability_2(entt::registry& reg, float dt);
     void handle_character_change(entt::registry& reg, float dt);
+
     void handle_jump(entt::registry& reg, float dt);
+    void handle_ability_multi_jump(entt::registry& reg, float dt);
+    void handle_wall_jump(entt::registry& reg, float dt);
     void handle_gravity(entt::registry& reg, float dt);
 
     void handle_ability_glide(entt::registry& reg, float dt);
-    void handle_ability_multi_jump(entt::registry& reg, float dt);
 
     void reset_values(entt::registry& reg, float dt);
 }

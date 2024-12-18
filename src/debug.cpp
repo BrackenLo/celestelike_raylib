@@ -28,6 +28,14 @@ void ComponentEditorWidget<celestelike::Velocity>(entt::registry& reg, entt::reg
 }
 
 template <>
+void ComponentEditorWidget<celestelike::OnWall>(entt::registry& reg, entt::registry::entity_type e)
+{
+    auto& val = reg.get<celestelike::OnWall>(e);
+    ImGui::Text("OnLeft: %s", val.on_left ? "true" : "false");
+    ImGui::Text("OnRight: %s", val.on_right ? "true" : "false");
+}
+
+template <>
 void ComponentEditorWidget<celestelike::WalkSpeed>(entt::registry& reg, entt::registry::entity_type e)
 {
     auto& val = reg.get<celestelike::WalkSpeed>(e);
@@ -247,6 +255,7 @@ namespace debug {
 
         inspector.registerComponent<OnGround>("OnGround");
         inspector.registerComponent<OnCeiling>("OnCeiling");
+        inspector.registerComponent<OnWall>("OnWall");
 
         inspector.registerComponent<Render>("Render");
         inspector.registerComponent<Sprite>("Sprite");
