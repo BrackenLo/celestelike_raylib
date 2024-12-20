@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <raylib.h>
 
 #include "components.hpp"
