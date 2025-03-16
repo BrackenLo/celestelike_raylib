@@ -1,11 +1,11 @@
-#include "game/player.hpp"
+#include "player.hpp"
 
 #include <cmath>
 #include <memory>
 #include <raylib.h>
 #include <raymath.h>
 
-#include "helper.hpp"
+#include "../helper.hpp"
 #include "player_inner_characters.hpp"
 
 //====================================================================

@@ -1,7 +1,7 @@
 #include "debug.hpp"
 
+#include "imgui_stdlib.h"
 #include <imgui.h>
-#include <imgui_stdlib.h>
 #include <magic_enum/magic_enum.hpp>
 #include <raylib.h>
 
@@ -153,7 +153,7 @@ template <>
 void ComponentEditorWidget<Name>(entt::registry& reg, entt::registry::entity_type e)
 {
     auto& val = reg.get<Name>(e);
-    ImGui::InputText("Name", &val.name);
+    ImGui::InputText("Name", &val.name, sizeof(val.name));
 }
 
 template <>

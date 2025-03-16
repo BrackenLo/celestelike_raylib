@@ -1,0 +1,62 @@
+[project]
+name = "celestelike_raylib"
+version = 1.0
+
+[cmake]
+minimum_required = 3.15
+files = "All"
+
+[dependencies]
+find = []
+project_dependencies = ["raylib", "imgui", "rlImGui", "imgui_entt_entity_editor", "magic_enum", "cereal", "EnTT"]
+
+[[dependencies.local]]
+path = "external/raylib"
+name = "raylib"
+local_type = "CMake"
+variables = [["BUILD_EXAMPLES", ' OFF CACHE BOOL "" FORCE'], ["BUILD_GAMES", ' OFF CACHE BOOL "" FORCE']]
+
+[[dependencies.local]]
+path = "external/imgui"
+name = "imgui"
+variables = []
+
+[dependencies.local.local_type.Source]
+files = "Root"
+dependencies = []
+
+[[dependencies.local]]
+path = "external/rlImGui"
+name = "rlImGui"
+variables = []
+
+[dependencies.local.local_type.Source]
+files = "Root"
+dependencies = ["raylib", "imgui"]
+
+[[dependencies.local]]
+path = "external/imgui_entt_entity_editor"
+name = "imgui_entt_entity_editor"
+variables = []
+
+[dependencies.local.local_type.Source]
+files = "Header"
+dependencies = []
+
+[[dependencies.local]]
+path = "external/magic_enum"
+name = "magic_enum"
+local_type = "CMake"
+variables = []
+
+[[dependencies.local]]
+path = "external/cereal"
+name = "cereal"
+local_type = "CMake"
+variables = [["JUST_INSTALL_CEREAL", " ON"]]
+
+[[dependencies.local]]
+path = "external/entt"
+name = "EnTT"
+local_type = "CMake"
+variables = []

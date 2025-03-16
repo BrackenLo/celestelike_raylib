@@ -1,6 +1,6 @@
 #include "player_inner_characters.hpp"
 
-#include "game/player.hpp"
+#include "player.hpp"
 #include "raymath.h"
 
 //====================================================================
