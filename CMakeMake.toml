@@ -4,7 +4,11 @@ version = 1.0
 
 [cmake]
 minimum_required = 3.15
-files = "All"
+
+[cmake.files]
+source_files = [["GlobRecurse", ["."]]]
+include_dirs = [["Public", ["."]]]
+exclude_files = []
 
 [dependencies]
 find = []
@@ -22,8 +26,12 @@ name = "imgui"
 variables = []
 
 [dependencies.local.local_type.Source]
-files = "Root"
 dependencies = []
+
+[dependencies.local.local_type.Source.files]
+source_files = [["Glob", [".", "misc/cpp"]]]
+include_dirs = [["Public", [".", "misc/cpp"]]]
+exclude_files = []
 
 [[dependencies.local]]
 path = "external/rlImGui"
@@ -31,8 +39,13 @@ name = "rlImGui"
 variables = []
 
 [dependencies.local.local_type.Source]
-files = "Root"
 dependencies = ["raylib", "imgui"]
+
+[dependencies.local.local_type.Source.files]
+source_files = [["Glob", ["."]]]
+include_dirs = [["Public", ["."]]]
+exclude_files = []
+
 
 [[dependencies.local]]
 path = "external/imgui_entt_entity_editor"
@@ -40,8 +53,12 @@ name = "imgui_entt_entity_editor"
 variables = []
 
 [dependencies.local.local_type.Source]
-files = "Header"
 dependencies = []
+
+[dependencies.local.local_type.Source.files]
+source_files = []
+exclude_files = []
+include_dirs = [["Interface", ["."]]]
 
 [[dependencies.local]]
 path = "external/magic_enum"
